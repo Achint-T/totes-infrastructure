@@ -3,7 +3,7 @@ name: totes-infrastructure-deployment
 on:
   push:
     branches:
-      - cicd-setup
+      - main
 
 
 jobs:
