@@ -1,0 +1,11 @@
+bandit
+black
+boto3==1.34.88
+botocore
+coverage
+moto
+pg8000
+pytest
+pytest-coverage
+requests
+responses
