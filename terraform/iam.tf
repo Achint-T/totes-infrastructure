@@ -68,3 +68,41 @@ resource "aws_iam_role_policy_attachment" "lambda_cw_policy_attachment" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.cw_policy.arn
 }
+
+# IAM Role for EventBridge Scheduler to invoke Lambda
+resource "aws_iam_role" "scheduler_role" {
+  name = "eventbridge-scheduler-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "scheduler.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "scheduler_lambda_policy_attachment" {
+  name       = "scheduler-lambda-policy-attachment"
+  roles      = [aws_iam_role.scheduler_role.name]
+  policy_arn = aws_iam_policy.scheduler_lambda_policy.arn
+}
+
+resource "aws_iam_policy" "scheduler_lambda_policy" {
+  name        = "scheduler-lambda-policy"
+  description = "Policy to allow EventBridge Scheduler to invoke Lambda"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "lambda:InvokeFunction"
+        Resource = aws_lambda_function.ingestion_handler.arn
+      },
+    ]
+  })
+}
