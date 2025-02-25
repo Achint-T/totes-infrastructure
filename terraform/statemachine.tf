@@ -82,7 +82,7 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
 
   logging_configuration {
     level = "ALL"
-    # include_execution_data = true
+    include_execution_data = true
     log_destination = "${aws_cloudwatch_log_group.state_machine_logs.arn}:*"
   }
   depends_on = [ aws_cloudwatch_log_group.state_machine_logs, aws_iam_role_policy_attachment.state_machine_logs_attachment ]
