@@ -145,3 +145,50 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_alarm_sns_policy_attachmen
   role       = aws_iam_role.cloudwatch_alarm_sns_role.name
   policy_arn = aws_iam_policy.cloudwatch_alarm_sns_policy.arn
 }
+
+resource "aws_iam_role" "state_machine_role" {
+  name = "state-machine-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "states.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "state_machine_cloudwatch_logs_policy" {
+  name        = "state-machine-cloudwatch-logs-policy"
+  description = "Policy to allow state machine to write logs to CloudWatch Logs"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          # "logs:CreateLogStream",
+          # "logs:PutLogEvents"
+          "*"
+        ],
+        Resource = [
+          # "${aws_cloudwatch_log_group.state_machine_logs.arn}:*",
+          # aws_cloudwatch_log_group.state_machine_logs.arn      
+          "*"   
+        ]
+      }
+    ]
+  })
+
+}
+
+resource "aws_iam_role_policy_attachment" "state_machine_logs_attachment" {
+  role       = aws_iam_role.state_machine_role.name
+  policy_arn = aws_iam_policy.state_machine_cloudwatch_logs_policy.arn
+}
