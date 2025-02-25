@@ -4,6 +4,7 @@ boto3==1.34.88
 botocore
 coverage
 moto
+pandas
 pg8000
 pytest
 pytest-coverage
