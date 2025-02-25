@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_log_metric_filter" "error_filter" {
   name           = "ErrorFilter"
-  log_group_name = "/aws/vendedlogs/states/pipeline" #update for the actual log group name
+  log_group_name = "/aws/state-machine/pipeline" #update for the actual log group name
   pattern        = "ExecutionFailed" # Adjust pattern to match error logs 
 
   metric_transformation {
@@ -9,6 +9,7 @@ resource "aws_cloudwatch_log_metric_filter" "error_filter" {
     value         = "1"
     default_value = 0
   }
+  depends_on = [ aws_cloudwatch_log_group.state_machine_logs ]
 }
 
 resource "aws_cloudwatch_metric_alarm" "error_alarm_with_role" {
@@ -22,4 +23,10 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm_with_role" {
   threshold           = "1"
   alarm_actions       = [aws_sns_topic.error_notifications.arn]
   depends_on          = [aws_cloudwatch_log_metric_filter.error_filter, aws_sns_topic_subscription.email_subscription, aws_iam_role_policy_attachment.cloudwatch_alarm_sns_policy_attachment]
+}
+
+resource "aws_cloudwatch_log_group" "state_machine_logs" {
+  name = "/aws/state-machine/pipeline"
+  retention_in_days = 30
+  
 }
