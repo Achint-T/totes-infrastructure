@@ -106,3 +106,42 @@ resource "aws_iam_policy" "scheduler_lambda_policy" {
     ]
   })
 }
+
+resource "aws_iam_role" "cloudwatch_alarm_sns_role" {
+  name = "CloudWatchAlarmSNSRole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "cloudwatch.amazonaws.com"
+        }
+        Effect = "Allow"
+        Sid    = ""
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "cloudwatch_alarm_sns_policy" {
+  name        = "CloudWatchAlarmSNSPolicy"
+  description = "Policy to allow CloudWatch Alarm to publish to SNS Topic"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "sns:Publish"
+        ]
+        Effect   = "Allow"
+        Resource = aws_sns_topic.error_notifications.arn
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch_alarm_sns_policy_attachment" {
+  role       = aws_iam_role.cloudwatch_alarm_sns_role.name
+  policy_arn = aws_iam_policy.cloudwatch_alarm_sns_policy.arn
+}
