@@ -24,12 +24,11 @@ resource "aws_iam_role" "lambda_role" {
     EOF
 }
 
-##maybe make resources more dynamic in case we create a new ingestion bucket:
 data "aws_iam_policy_document" "s3_document" {
   statement {
     actions = ["s3:PutObject"]
     resources = [
-      "arn:aws:s3:::s3-totes-sys-ingestion-bucket-20250224150910335400000001/*",
+      "${aws_s3_bucket.s3_ingestion_bucket.arn}/*"
     ]
   }
 }
