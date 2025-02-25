@@ -1,4 +1,4 @@
-resource "aws_sfn_state_machine" "pipeline-machine" {
+resource "aws_sfn_state_machine" "pipeline_machine" {
   name     = "pipeline-state-machine"
   role_arn = aws_iam_role.state_machine_role.arn
 
