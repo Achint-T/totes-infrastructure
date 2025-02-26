@@ -6,6 +6,7 @@ coverage
 moto
 pandas
 pg8000
+pyarrow
 pytest
 pytest-coverage
 requests
