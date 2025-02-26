@@ -69,7 +69,7 @@ resource "aws_iam_role_policy_attachment" "lambda_cw_policy_attachment" {
   policy_arn = aws_iam_policy.cw_policy.arn
 }
 
-# IAM Role for EventBridge Scheduler to invoke Lambda
+# IAM Role for EventBridge Scheduler to invoke state machine
 resource "aws_iam_role" "scheduler_role" {
   name = "eventbridge-scheduler-role"
   assume_role_policy = jsonencode({
@@ -86,23 +86,109 @@ resource "aws_iam_role" "scheduler_role" {
   })
 }
 
-resource "aws_iam_policy_attachment" "scheduler_lambda_policy_attachment" {
-  name       = "scheduler-lambda-policy-attachment"
+resource "aws_iam_policy_attachment" "scheduler_state_machine_policy_attachment" {
+  name       = "scheduler-state-machine-policy-attachment"
   roles      = [aws_iam_role.scheduler_role.name]
-  policy_arn = aws_iam_policy.scheduler_lambda_policy.arn
+  policy_arn = aws_iam_policy.scheduler_state_machine_policy.arn
 }
 
-resource "aws_iam_policy" "scheduler_lambda_policy" {
-  name        = "scheduler-lambda-policy"
-  description = "Policy to allow EventBridge Scheduler to invoke Lambda"
+resource "aws_iam_policy" "scheduler_state_machine_policy" {
+  name        = "scheduler-state-machine-policy"
+  description = "Policy to allow EventBridge Scheduler to invoke state machine"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Effect   = "Allow"
-        Action   = "lambda:InvokeFunction"
-        Resource = aws_lambda_function.ingestion_handler.arn
+        Action   = [ "states:StartExecution" ],
+        Resource = aws_sfn_state_machine.pipeline_machine.arn
       },
     ]
   })
+}
+
+resource "aws_iam_role" "cloudwatch_alarm_sns_role" {
+  name = "CloudWatchAlarmSNSRole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "cloudwatch.amazonaws.com"
+        }
+        Effect = "Allow"
+        Sid    = ""
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "cloudwatch_alarm_sns_policy" {
+  name        = "CloudWatchAlarmSNSPolicy"
+  description = "Policy to allow CloudWatch Alarm to publish to SNS Topic"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "sns:Publish"
+        ]
+        Effect   = "Allow"
+        Resource = aws_sns_topic.error_notifications.arn
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch_alarm_sns_policy_attachment" {
+  role       = aws_iam_role.cloudwatch_alarm_sns_role.name
+  policy_arn = aws_iam_policy.cloudwatch_alarm_sns_policy.arn
+}
+
+resource "aws_iam_role" "state_machine_role" {
+  name = "state-machine-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "states.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "state_machine_cloudwatch_logs_policy" {
+  name        = "state-machine-cloudwatch-logs-policy"
+  description = "Policy to allow state machine to write logs to CloudWatch Logs"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          # "logs:CreateLogStream",
+          # "logs:PutLogEvents"
+          "*"
+        ],
+        Resource = [
+          # "${aws_cloudwatch_log_group.state_machine_logs.arn}:*",
+          # aws_cloudwatch_log_group.state_machine_logs.arn      
+          "*"   
+        ]
+      }
+    ]
+  })
+
+}
+
+resource "aws_iam_role_policy_attachment" "state_machine_logs_attachment" {
+  role       = aws_iam_role.state_machine_role.name
+  policy_arn = aws_iam_policy.state_machine_cloudwatch_logs_policy.arn
 }

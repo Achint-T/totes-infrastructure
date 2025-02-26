@@ -7,7 +7,7 @@ resource "aws_scheduler_schedule" "pipeline_scheduler" {
       mode = "OFF"
     }
     target {
-      arn = aws_lambda_function.ingestion_handler.arn
+      arn = aws_sfn_state_machine.pipeline_machine.arn
       role_arn = aws_iam_role.scheduler_role.arn
       retry_policy {
         maximum_event_age_in_seconds = 600 #decide time frame each run will be valid
