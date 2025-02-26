@@ -100,3 +100,6 @@ class TestDimStaffErrorHandling:
         df_department = pd.DataFrame([  # missing location
             [101, "Purchasing"]
         ], columns=["department_id", "department_name"])
+
+        with pytest.raises(KeyError, match="Missing columns in df_department: location"):
+            util_dim_staff(df_fact_sales_order, df_staff, df_department)
