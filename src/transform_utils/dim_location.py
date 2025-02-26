@@ -8,6 +8,16 @@ from src.transform_utils.fact_sales_order import util_fact_sales_order
 def util_dim_location(df_fact_sales_order, df_address):
     df_dim_location = pd.DataFrame()
 
+    if df_fact_sales_order.empty:
+        return "The source dataframe fact_sales_order is empty"
+    if df_address.empty:
+        return "The source dataframe address is empty"
+    
+    required_columns = ['address_id', 'address_line_1', 'address_line_2', 'district', 'city', 'postal_code', 'country', 'phone', 'created_at', 'last_updated']
+    col_missing = [col for col in required_columns if col not in df_address.columns]
+    if col_missing:
+        return f"Error: Missing columns {', '.join(col_missing)} for the source data frame address"
+
     df_dim_location['location_id'] = df_fact_sales_order['agreed_delivery_location_id']
     df_dim_location['address_line_1'] = df_address['address_line_1']
     df_dim_location['address_line_2'] = df_address['address_line_2']
