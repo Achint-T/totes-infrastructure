@@ -1,10 +1,5 @@
 import pandas as pd
 
-# Inputs: Pandas dataframe for sales_order
-# Create new dataframe with data that has been transformed
-# Return new dataframe
-
-
 def util_fact_sales_order(df_sales_order):
 
     df_fact_sales_order = pd.DataFrame()
