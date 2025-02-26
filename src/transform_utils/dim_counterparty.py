@@ -26,22 +26,32 @@ def util_dim_counterparty(df_fact_sales_order, df_counterparty, df_address):
     if col_missing_counterparty != [] or col_missing_address != []:
         return f"Error: Missing columns {', '.join(col_missing_counterparty)}{', '.join(col_missing_address)}"
 
-    # Filling in the dataframe
-    df_dim_counterparty["counterparty_id"] = df_fact_sales_order["counterparty_id"]
-    df_dim_counterparty["counterparty_legal_name"] = df_counterparty[
-        "counterparty_legal_name"
-    ]
-    df_dim_counterparty["counterparty_legal_address_line_1"] = df_address[
-        "address_line_1"
-    ]
-    df_dim_counterparty["counterparty_legal_address_line_2"] = df_address[
-        "address_line_2"
-    ]
-    df_dim_counterparty["counterparty_legal_district"] = df_address["district"]
-    df_dim_counterparty["counterparty_legal_city"] = df_address["city"]
-    df_dim_counterparty["counterparty_legal_postal_code"] = df_address["postal_code"]
-    df_dim_counterparty["counterparty_legal_country"] = df_address["country"]
-    df_dim_counterparty["counterparty_legal_phone_number"] = df_address["phone"]
+    # Merge dataframes and remove unneeded columns to create df_dim_counterparty
+    df_dim_counterparty = df_fact_sales_order[['counterparty_id']].merge(
+        df_counterparty[['counterparty_id', 'counterparty_legal_name', 'legal_address_id']], 
+        on='counterparty_id', 
+        how='left'
+    ).merge(
+        df_address[['address_id', 'address_line_1', 'address_line_2', 'district', 'city', 'postal_code', 'country', 'phone']],
+        left_on='legal_address_id', 
+        right_on='address_id',
+        how='left'
+    )
+
+    df_dim_counterparty.drop(columns=['address_id'], inplace=True)
+    df_dim_counterparty.drop(columns=['legal_address_id'], inplace=True)
+
+    # Rename columns
+    df_dim_counterparty.rename(columns={
+        'counterparty_legal_name': 'counterparty_legal_name',
+        'address_line_1': 'counterparty_legal_address_line_1',
+        'address_line_2': 'counterparty_legal_address_line_2',
+        'district': 'counterparty_legal_district',
+        'city': 'counterparty_legal_city',
+        'postal_code': 'counterparty_legal_postal_code',
+        'country': 'counterparty_legal_country',
+        'phone': 'counterparty_legal_phone_number'
+    }, inplace=True)
 
     df_dim_counterparty.index.name = None
 
