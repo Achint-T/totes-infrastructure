@@ -1,15 +1,12 @@
 import pandas as pd 
-from src.transform_utils.fact_sales_order import util_fact_sales_order
 
 # Inputs: Pandas dataframe from the ingested address table
 # Process: Create new dataframe with data that has been transformed 
 # Output: Return newly transformed dim_location dataframe
 
-def util_dim_location(df_fact_sales_order, df_address):
+def util_dim_location(df_address):
     df_dim_location = pd.DataFrame()
 
-    if df_fact_sales_order.empty:
-        return "The source dataframe fact_sales_order is empty"
     if df_address.empty:
         return "The source dataframe address is empty"
     
@@ -18,7 +15,7 @@ def util_dim_location(df_fact_sales_order, df_address):
     if col_missing:
         return f"Error: Missing columns {', '.join(col_missing)} for the source data frame address"
 
-    df_dim_location['location_id'] = df_fact_sales_order['agreed_delivery_location_id']
+    df_dim_location['location_id'] = df_address['address_id']
     df_dim_location['address_line_1'] = df_address['address_line_1']
     df_dim_location['address_line_2'] = df_address['address_line_2']
     df_dim_location['district'] = df_address['district']
