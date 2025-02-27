@@ -1,7 +1,24 @@
 import pytest
+import boto3
 import os
 from unittest.mock import MagicMock 
-from src.ingestion_utils.database_utils import create_connection, get_recent_additions
+from src.ingestion_utils.database_utils import create_connection, get_recent_additions, get_last_upload_date
+from moto import mock_aws
+
+@pytest.fixture(scope="function", autouse=True)
+def aws_credentials():
+    """Mocked AWS Credentials for moto."""
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
+
+@pytest.fixture()
+def secrets_client(aws_credentials):
+    with mock_aws():
+        secrets_client = boto3.client("secretsmanager")
+        yield secrets_client
 
 class TestCreateConnection:
 
@@ -55,4 +72,28 @@ class TestGetRecentAdditions:
         assert "Error fetching recent additions" in str(excinfo.value)
         mock_conn.run.assert_called_once_with(f'SELECT * FROM {table_name} WHERE last_updated BETWEEN \'{update_date}\' AND \'{time_now}\';')
 
-    
+class TestGetLastUploadDate:
+    def test_gets_last_date_if_exists(
+        self, secrets_client
+    ):
+        secret_name = "lastupload"
+        secrets_client.create_secret(
+            Name=secret_name,
+            SecretString="1999-04-30 14:56:09")
+        
+        credentials = get_last_upload_date(secrets_client)
+        assert isinstance(credentials, str)
+
+    def test_giving_non_existing_secret_returns_default(
+        self, secrets_client
+    ):
+        credentials = get_last_upload_date(secrets_client)
+
+        assert credentials == '2020-01-01 00:00:00'
+
+    def test_raises_exception_when_theres_an_error(self, secrets_client):
+
+        with pytest.raises(Exception) as error:
+            get_last_upload_date('hi')
+
+        assert "Error fetching last upload" in str(error.value)

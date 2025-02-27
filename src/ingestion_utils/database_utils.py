@@ -1,5 +1,6 @@
 from pg8000.native import Connection
 import os
+from botocore.exceptions import ClientError
 
 def create_connection() -> Connection:
     """Creates a database connection using environment variables.
@@ -59,9 +60,22 @@ def get_recent_additions(conn, tablename: str, updatedate: str, time_now: str) -
     except Exception as e:
         raise Exception(f"Error fetching recent additions: {e}") from e
     
-# def get_last_upload_date(client, objects = client.list_objects_v2(Bucket='s3_ingestion_bucket')):
-#     try:
-#         date_info = max([obj['Key'] for obj in objects['Contents'] if re.match(r"^20\d\d/\d+/\d+/\d+/\d+/",obj['Key'])]).split('/')
-#         return f'{date_info[0]}-{date_info[1].rjust(2,'0')}-{date_info[2].rjust(2,'0')} {date_info[3].rjust(2,'0')}:{date_info[4].rjust(2,'0')}:00'
-#     except:
-#         return "2020-01-01 00:00"
+def get_last_upload_date(secretsclient):
+    """Retrieves the date of the last ingestion which is stored inside a secret.
+
+    Args:
+        secretsclient: Boto3 client connecting to aws secret manager
+
+    Returns:
+        the value of the last upload date in the form of a time stamp 'YYYY-MM-DD 00:00:00' - defaults to the start of 2020 if no value found
+    """
+    try:
+        timestamp = secretsclient.get_secret_value(SecretId = 'lastupload')['SecretString']
+        return timestamp
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceNotFoundException":
+            return '2020-01-01 00:00:00'
+        else:
+            raise Exception(f"Error fetching last upload: {e}")
+    except Exception as e:
+        raise Exception(f"Error fetching last upload: {e}")
