@@ -14,6 +14,11 @@ resource "null_resource" "prepare_layer_files" {
     command = <<EOT
       mkdir -p "${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages"
       cp "${path.module}/../src/helpers.py" "${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages/helpers.py"
+
+      cp "${path.module}/../src/ingestion_utils/database_utils.py" "${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages/database_utils.py"
+      cp "${path.module}/../src/ingestion_utils/file_utils.py" "${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages/file_utils.py"
+
+      pip install pg8000 -t "${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages"
     EOT
   }
 }
