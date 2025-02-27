@@ -8,19 +8,18 @@ class TestCreateConnection:
     def test_giving_missing_username_env_when_create_connection_then_raises_keyerror(self):
         os.environ['USERNAME'] = 'testusername'
         os.environ['HOST'] = 'testhost'
-        os.environ['PORT'] = '1234'
+        os.environ['PASSWORD'] = '1234'
         os.environ['DBNAME'] = 'testdb'
 
         with pytest.raises(KeyError) as excinfo:
             create_connection()
 
-        assert "PASSWORD" in str(excinfo.value)
+        assert "PORT" in str(excinfo.value)
         assert "Missing environment variable:" in str(excinfo.value)
         # Cleanup environment variables
         del os.environ['USERNAME']
-        del os.environ['PASSWORD']
         del os.environ['HOST']
-        del os.environ['PORT']
+        del os.environ['PASSWORD']
         del os.environ['DBNAME']
 
 class TestGetRecentAdditions:
