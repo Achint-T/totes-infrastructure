@@ -3,75 +3,6 @@ from src.transform_utils.fact_sales_order import *
 import pandas as pd
 import pytest
 
-
-@pytest.fixture
-def fact_sales_order():
-    data = [
-        [
-            1,
-            "2022-11-03 14:20:52.186",
-            "2022-11-03 14:20:52.186",
-            5,
-            2,
-            1,
-            2317,
-            3.94,
-            3,
-            "2022-11-07",
-            "2022-11-08",
-            2,
-        ],
-        [
-            2,
-            "2022-11-03 14:20:52.186",
-            "2022-11-03 14:20:52.186",
-            5,
-            2,
-            2,
-            2317,
-            3.94,
-            3,
-            "2022-11-07",
-            "2022-11-08",
-            2,
-        ],
-        [
-            3,
-            "2022-11-03 14:20:52.186",
-            "2022-11-03 14:20:52.186",
-            5,
-            2,
-            3,
-            2317,
-            3.94,
-            3,
-            "2022-11-07",
-            "2022-11-08",
-            2,
-        ],
-    ]
-
-    test_df = pd.DataFrame(
-        data,
-        columns=[
-            "sales_order_id",
-            "created_at",
-            "last_updated",
-            "design_id",
-            "staff_id",
-            "counterparty_id",
-            "units_sold",
-            "unit_price",
-            "currency_id",
-            "agreed_delivery_date",
-            "agreed_payment_date",
-            "agreed_delivery_location_id",
-        ],
-    )
-
-    df_fact_sales_order = util_fact_sales_order(test_df)
-    return df_fact_sales_order
-
 @pytest.fixture
 def counterparty():
     data = {
@@ -242,12 +173,12 @@ def address_with_missing_cols():
 
 class TestSalesOrder:
 
-    def test_returns_dataframe(self, fact_sales_order, counterparty, address):
-        output = util_dim_counterparty(fact_sales_order, counterparty, address)
+    def test_returns_dataframe(self, counterparty, address):
+        output = util_dim_counterparty(counterparty, address)
         assert isinstance(output, pd.DataFrame)
 
-    def test_returns_correct_columns(self, fact_sales_order, counterparty, address):
-        output = util_dim_counterparty(fact_sales_order, counterparty, address)
+    def test_returns_correct_columns(self, counterparty, address):
+        output = util_dim_counterparty(counterparty, address)
         assert list(output.columns) == [
             "counterparty_id",
             "counterparty_legal_name",
@@ -260,8 +191,8 @@ class TestSalesOrder:
             "counterparty_legal_phone_number",
         ]
 
-    def test_returns_empty_values_where_acceptable(self, fact_sales_order, counterparty, address_with_blanks):
-        output = util_dim_counterparty(fact_sales_order, counterparty, address_with_blanks)
+    def test_returns_empty_values_where_acceptable(self, counterparty, address_with_blanks):
+        output = util_dim_counterparty(counterparty, address_with_blanks)
 
         assert output['counterparty_legal_address_line_2'].iloc[0] == None
         assert output['counterparty_legal_district'].iloc[0] == None
@@ -271,12 +202,12 @@ class TestSalesOrderErrorHandling:
 
     def test_empty_dataframe(self, counterparty, address):
         test_df = pd.DataFrame()
-        output = util_dim_counterparty(test_df, counterparty, address)
+        output = util_dim_counterparty(test_df, address)
         assert output == "Error: One or more of the source dataframes is empty"
 
-    def test_missing_columns(self, fact_sales_order, counterparty, address_with_missing_cols):
+    def test_missing_columns(self, counterparty, address_with_missing_cols):
 
-        output = util_dim_counterparty(fact_sales_order, counterparty, address_with_missing_cols)
+        output = util_dim_counterparty(counterparty, address_with_missing_cols)
         assert output == "Error: Missing columns last_updated"
 
 
