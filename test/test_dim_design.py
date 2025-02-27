@@ -30,7 +30,7 @@ class TestDimDesign:
         "file_location",
         "file_name",]
 
-class TestSalesOrderErrorHandling:
+class TestDimDesignErrorHandling:
 
     def test_empty_dataframe(self):
         test_df = pd.DataFrame()
