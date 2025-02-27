@@ -8,8 +8,7 @@ resource "null_resource" "prepare_layer_files" {
   triggers = {
     
     helper_file_hash = filebase64sha256("${path.module}/../src/helpers.py")
-    #lambda_runtime   = aws_lambda_function.lambda_function.runtime
-  }
+}
 
   provisioner "local-exec" {
     command = <<EOT
@@ -37,7 +36,6 @@ resource "aws_s3_object" "helper_layer_code" {
 bucket = aws_s3_bucket.code_bucket.bucket
   key    = "ingestion/helpers.zip"
   source = "${path.module}/../packages/ingestion/helpers.zip"
-  #etag   = filemd5(data.archive_file.helper_lambda_layer.output_path)
 }
 
 resource "aws_lambda_layer_version" "helper_lambda_layer" {
