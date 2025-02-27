@@ -7,13 +7,21 @@ data "archive_file" "ingestion_lambda" {
 resource "null_resource" "prepare_layer_files" {
   triggers = {
     
+    helper_file_hash = filebase64sha256("${path.module}/../src/ingestion_utils/database_utils.py")
+    helper_file_hash = filebase64sha256("${path.module}/../src/ingestion_utils/file_utils.py")
     helper_file_hash = filebase64sha256("${path.module}/../src/helpers.py")
+    
 }
 
   provisioner "local-exec" {
     command = <<EOT
-      mkdir -p "${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages"
-      cp "${path.module}/../src/helpers.py" "${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages/helpers.py"
+    LAYER_PATH="${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages"
+      mkdir -p "$LAYER_PATH"
+      cp "${path.module}/../src/helpers.py" "$LAYER_PATH/helpers.py"
+      cp "${path.module}/../src/ingestion_utils/database_utils.py" "$LAYER_PATH/database_utils.py"
+      cp "${path.module}/../src/ingestion_utils/file_utils.py" "$LAYER_PATH/file_utils.py"
+
+      pip install --no-cache-dir pg8000 --target "$LAYER_PATH"
     EOT
   }
 }
@@ -35,7 +43,7 @@ bucket = aws_s3_bucket.code_bucket.bucket
 resource "aws_s3_object" "helper_layer_code" {
 bucket = aws_s3_bucket.code_bucket.bucket
   key    = "ingestion/helpers.zip"
-  source = "${path.module}/../packages/ingestion/helpers.zip"
+  source = data.archive_file.helper_lambda_layer.output_path
 }
 
 resource "aws_lambda_layer_version" "helper_lambda_layer" {
