@@ -12,8 +12,8 @@ resource "null_resource" "prepare_layer_files" {
 
   provisioner "local-exec" {
     command = <<EOT
-      mkdir -p "${path.module}"/../packages/ingestion/layer/python/lib/python3.12/site-packages
-      cp "${path.module}/../src/helpers.py" "${path.module}"/../packages/ingestion/layer/python/lib/python3.12/site-packages/helpers.py
+      mkdir -p "${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages"
+      cp "${path.module}/../src/helpers.py" "${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages/helpers.py"
     EOT
   }
 }
