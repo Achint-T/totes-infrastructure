@@ -65,3 +65,31 @@ resource "aws_lambda_function" "ingestion_handler" {
   timeout          = 30
 }
 
+
+# Transform lambda 
+
+data "archive_file" "transform_lambda" {
+  type        = "zip"
+  output_path = "${path.module}/../packages/transform/function.zip"
+  source_file = "${path.module}/../src/lambda_transform.py"
+}
+
+resource "aws_s3_object" "transform_lambda_code" {
+  bucket = aws_s3_bucket.code_bucket.bucket
+  key    = "transform/function.zip"
+  source = data.archive_file.transform_lambda.output_path
+  etag   = filemd5(data.archive_file.transform_lambda.output_path)
+}
+
+resource "aws_lambda_function" "transform_handler" {
+  function_name    = "transform_handler"
+  s3_bucket        = aws_s3_bucket.code_bucket.bucket
+  s3_key           = aws_s3_object.transform_lambda_code.key
+  source_code_hash = data.archive_file.transform_lambda.output_base64sha256
+  role             = aws_iam_role.lambda_role.arn
+  layers           = [aws_lambda_layer_version.helper_lambda_layer.arn]
+  handler          = "lambda_transform.lambda_handler"
+  runtime          = "python3.12"
+  timeout          = 30
+}
+
