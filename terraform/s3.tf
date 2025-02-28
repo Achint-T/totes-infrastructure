@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "s3_ingestion_bucket" {
-    bucket = "mourne-s3-totes-sys-ingestion-bucket-2"
+    bucket = "mourne-s3-totes-sys-ingestion-bucket-3"
     object_lock_enabled = true
 }
 
