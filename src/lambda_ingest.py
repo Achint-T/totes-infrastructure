@@ -55,7 +55,7 @@ def save_data_to_s3(conn, tables_to_ingest,last_date, timestamp, s3_client=s3_cl
     for table in tables_to_ingest:
         data = get_recent_additions(conn, tablename=table, updatedate=last_date, time_now=timestamp["secret"])
         data_to_csv(data, table_name=table)
-        s3_client.upload_file(f"/tmp/{table}.csv", "mourne-s3-totes-sys-ingestion-bucket", timestamp["filepath"] + '/' + table + '.csv')
+        s3_client.upload_file(f"/tmp/{table}.csv", "mourne-s3-totes-sys-ingestion-bucket-2", timestamp["filepath"] + '/' + table + '.csv')
 
 
 #lambda_handler(event={"tables":["sales_order", "design"]},context={})
