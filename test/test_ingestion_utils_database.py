@@ -2,7 +2,8 @@ import pytest
 import boto3
 import os
 from unittest.mock import MagicMock 
-from src.ingestion_utils.database_utils import create_connection, get_recent_additions, get_last_upload_date, get_current_time
+from src.ingestion_utils.database_utils import create_connection, get_recent_additions, get_last_upload_date
+from src.ingestion_utils.file_utils import get_current_time
 from moto import mock_aws
 
 @pytest.fixture(scope="function", autouse=True)
