@@ -13,7 +13,7 @@ class TestDataToCsv:
             ]
         }
         table_name = 'test_table'
-        csv_filename = f'{table_name}.csv'
+        csv_filename = f'/tmp/{table_name}.csv'
 
         data_to_csv(test_data, table_name)
 
