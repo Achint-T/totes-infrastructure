@@ -1,7 +1,7 @@
 import boto3
-from src.helpers import fetch_credentials, export_db_creds_to_env
-from src.ingestion_utils.file_utils import data_to_csv, get_current_time
-from src.ingestion_utils.database_utils import create_connection, close_db_connection, get_recent_additions, get_last_upload_date
+from helpers import fetch_credentials, export_db_creds_to_env
+from ingestion_utils.file_utils import data_to_csv, get_current_time
+from ingestion_utils.database_utils import create_connection, close_db_connection, get_recent_additions, get_last_upload_date
 import time
 import logging
 
@@ -55,7 +55,7 @@ def save_data_to_s3(conn, tables_to_ingest,last_date, timestamp, s3_client=s3_cl
     for table in tables_to_ingest:
         data = get_recent_additions(conn, tablename=table, updatedate=last_date, time_now=timestamp["secret"])
         data_to_csv(data, table_name=table)
-        s3_client.upload_file(f"./{table}.csv", "s3-totes-sys-ingestion-bucket-20250227154311511600000002", timestamp["filepath"] + '/' + table + '.csv')
+        s3_client.upload_file(f"/tmp/{table}.csv", "s3-totes-sys-ingestion-bucket-20250227154311511600000002", timestamp["filepath"] + '/' + table + '.csv')
 
 
 #lambda_handler(event={"tables":["sales_order", "design"]},context={})
