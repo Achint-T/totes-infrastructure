@@ -26,7 +26,7 @@ def data_to_csv(data, table_name):
     body = data['body']
     headers = data['headers']
     try:
-        with open(f'{table_name}.csv', 'w', newline='') as local_file:
+        with open(f'/tmp/{table_name}.csv', 'w', newline='') as local_file:
             writer = csv.writer(local_file)
             writer.writerow(headers)
             writer.writerows(body)

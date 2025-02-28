@@ -17,9 +17,10 @@ resource "null_resource" "prepare_layer_files" {
     command = <<EOT
     LAYER_PATH="${path.module}/../packages/ingestion/layer/python/lib/python3.12/site-packages"
       mkdir -p "$LAYER_PATH"
+      mkdir -p "$LAYER_PATH/ingestion_utils"
       cp "${path.module}/../src/helpers.py" "$LAYER_PATH/helpers.py"
-      cp "${path.module}/../src/ingestion_utils/database_utils.py" "$LAYER_PATH/database_utils.py"
-      cp "${path.module}/../src/ingestion_utils/file_utils.py" "$LAYER_PATH/file_utils.py"
+      cp "${path.module}/../src/ingestion_utils/database_utils.py" "$LAYER_PATH/ingestion_utils/database_utils.py"
+      cp "${path.module}/../src/ingestion_utils/file_utils.py" "$LAYER_PATH/ingestion_utils/file_utils.py"
 
       pip install --no-cache-dir pg8000 --target "$LAYER_PATH"
     EOT
@@ -62,7 +63,7 @@ resource "aws_lambda_function" "ingestion_handler" {
   layers           = [aws_lambda_layer_version.helper_lambda_layer.arn]
   handler          = "lambda_ingest.lambda_handler"
   runtime          = "python3.12"
-  timeout          = 30
+  timeout          = 60
 }
 
 
