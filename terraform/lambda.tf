@@ -84,7 +84,7 @@ resource "aws_s3_object" "transform_lambda_code" {
 resource "aws_lambda_function" "transform_handler" {
   function_name    = "transform_handler"
   s3_bucket        = aws_s3_bucket.code_bucket.bucket
-  s3_key           = aws_s3_object.lambda_code.key
+  s3_key           = aws_s3_object.transform_lambda_code.key
   source_code_hash = data.archive_file.transform_lambda.output_base64sha256
   role             = aws_iam_role.lambda_role.arn
   layers           = [aws_lambda_layer_version.helper_lambda_layer.arn]
