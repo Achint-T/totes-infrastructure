@@ -100,4 +100,4 @@ class TestDataToCsv:
 
         assert "Error writing to CSV file" in str(excinfo.value)
 
-        # os.chmod(str(read_only_dir), 0o777)
+        os.chmod(str(read_only_dir), 0o777)
