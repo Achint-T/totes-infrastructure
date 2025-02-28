@@ -7,7 +7,7 @@ from unittest.mock import patch, mock_open, MagicMock
 from io import StringIO
 import os
 
-from src.lambda_ingest import lambda_handler, fetch_credentials, export_db_creds_to_env, create_connection, get_last_upload_date, get_recent_additions, data_to_csv, close_db_connection
+#from src.lambda_ingest import lambda_handler, fetch_credentials, export_db_creds_to_env, create_connection, get_last_upload_date, get_recent_additions, data_to_csv, close_db_connection
 
 # @pytest.fixture(scope="function",autouse=True)
 # def aws_credentials():
