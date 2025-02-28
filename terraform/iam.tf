@@ -217,10 +217,6 @@ resource "aws_iam_role_policy_attachment" "lambda_secretsmanager_attachment" {
   policy_arn = aws_iam_policy.secretsmanager_access_policy.arn
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_secretsmanager_attachment" {
-  role       = aws_iam_role.lambda_role.name
-  policy_arn = aws_iam_policy.secretsmanager_access_policy.arn
-}
 
 resource "aws_iam_policy" "step_functions_policy" {
   name        = "step-functions-policy-lambda-invoke"
