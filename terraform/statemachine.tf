@@ -12,7 +12,20 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
       "Parameters": {
         "Payload": {
           "timestamp": "sampleValue1",
-          "uuid": "uniquenumber"
+          "uuid": "uniquenumber",
+          "tables": [
+            "sales_order",
+            "design",
+            "currency",
+            "staff",
+            "counterparty",
+            "address",
+            "department",
+            "purchase_order",
+            "payment_type",
+            "payment",
+            "transaction"
+          ]
         },
         "FunctionName": "arn:aws:lambda:eu-west-2:180294204691:function:ingestion_handler:$LATEST"
       },

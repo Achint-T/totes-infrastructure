@@ -32,3 +32,10 @@ def data_to_csv(data, table_name):
             writer.writerows(body)
     except IOError as e:
         raise IOError(f"Error writing to CSV file: {e}") from e
+    
+def get_current_time(time_object):
+    timenow = list(time_object[:5]) + [time_object[5]-1]
+    date = '-'.join([str(number).rjust(2,'0') for number in timenow[:3]])
+    hours = ':'.join([str(number).rjust(2,'0') for number in timenow[3:]])
+    timestamp = f'{date} {hours}'
+    return {'secret':timestamp, 'filepath': '/'.join(map(str,timenow[:-1]))}
