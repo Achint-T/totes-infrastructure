@@ -1,6 +1,8 @@
 from pg8000.native import Connection
 import os
 from botocore.exceptions import ClientError
+import time
+
 
 def create_connection() -> Connection:
     """Creates a database connection using environment variables.
@@ -78,4 +80,6 @@ def get_last_upload_date(secretsclient):
         else:
             raise Exception(f"Error fetching last upload: {e}")
     except Exception as e:
+
         raise Exception(f"Error fetching last upload: {e}")
+   
