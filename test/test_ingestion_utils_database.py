@@ -2,7 +2,7 @@ import pytest
 import boto3
 import os
 from unittest.mock import MagicMock 
-from src.ingestion_utils.database_utils import create_connection, get_recent_additions, get_last_upload_date
+from src.ingestion_utils.database_utils import create_connection, get_recent_additions, get_last_upload_date, get_current_time
 from moto import mock_aws
 
 @pytest.fixture(scope="function", autouse=True)
@@ -97,3 +97,42 @@ class TestGetLastUploadDate:
             get_last_upload_date('hi')
 
         assert "Error fetching last upload" in str(error.value)
+
+class TestGetLastUploadDate:
+    def test_gets_last_date_if_exists(
+        self, secrets_client
+    ):
+        secret_name = "lastupload"
+        secrets_client.create_secret(
+            Name=secret_name,
+            SecretString="1999-04-30 14:56:09")
+        
+        credentials = get_last_upload_date(secrets_client)
+        assert isinstance(credentials, str)
+
+    def test_giving_non_existing_secret_returns_default(
+        self, secrets_client
+    ):
+        credentials = get_last_upload_date(secrets_client)
+
+        assert credentials == '2020-01-01 00:00:00'
+
+    def test_raises_exception_when_theres_an_error(self, secrets_client):
+
+        with pytest.raises(Exception) as error:
+            get_last_upload_date('hi')
+
+        assert "Error fetching last upload" in str(error.value)
+
+class TestGetCurrentTime:
+    def test_converts_a_timestamp(self):
+        expected_output = {'secret':'2024-03-14 16:07:31', 'filepath':'2024/3/14/16/7'}
+        input = [2024,3,14,16,7,32]
+        output = get_current_time(input)
+        assert output == expected_output
+
+    def test_converts_a_timestamp_second(self):
+        expected_output = {'secret':'2021-04-15 03:17:52', 'filepath':'2021/4/15/3/17'}
+        input = [2021,4,15,3,17,53]
+        output = get_current_time(input)
+        assert output == expected_output
