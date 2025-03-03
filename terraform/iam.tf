@@ -28,8 +28,8 @@ data "aws_iam_policy_document" "s3_document" {
   statement {
     actions = ["s3:PutObject", "s3:GetObject"]
     resources = [
-      "${aws_s3_bucket.s3_ingestion_bucket.arn}/*", 
-      "${aws_s3_bucket.s3_transform_bucket.arn}/*"
+      "${data.terraform_remote_state.s3.outputs.s3_ingestion_bucket_arn}/*", 
+      "${data.terraform_remote_state.s3.outputs.s3_transform_bucket_arn}/*"
     ]
   }
 }
