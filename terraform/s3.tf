@@ -1,6 +1,5 @@
 resource "aws_s3_bucket" "s3_ingestion_bucket" {
-    bucket = "mourne-s3-totes-sys-ingestion-bucket-3"
-    object_lock_enabled = true
+    bucket_prefix = var.S3_BUCKET_PREFIX
 }
 
 resource "aws_s3_bucket" "code_bucket" {

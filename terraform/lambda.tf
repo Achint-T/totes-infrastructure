@@ -64,6 +64,12 @@ resource "aws_lambda_function" "ingestion_handler" {
   handler          = "lambda_ingest.lambda_handler"
   runtime          = "python3.12"
   timeout          = 60
+
+  environment {
+    variables = {
+      BUCKET_NAME = aws_s3_bucket.s3_ingestion_bucket.bucket
+    }
+  }
 }
 
 
