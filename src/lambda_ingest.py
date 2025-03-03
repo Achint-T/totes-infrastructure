@@ -4,9 +4,11 @@ from ingestion_utils.file_utils import data_to_csv, get_current_time
 from ingestion_utils.database_utils import create_connection, close_db_connection, get_recent_additions, get_last_upload_date
 import time
 import logging
+import os
 
 secret_client =  boto3.client("secretsmanager")
 s3_client = boto3.client("s3")
+bucket_name = os.environ["BUCKET_NAME"]
 
 def lambda_handler(event, context):
     """Handles the lambda function invocation.
@@ -55,7 +57,7 @@ def save_data_to_s3(conn, tables_to_ingest,last_date, timestamp, s3_client=s3_cl
     for table in tables_to_ingest:
         data = get_recent_additions(conn, tablename=table, updatedate=last_date, time_now=timestamp["secret"])
         data_to_csv(data, table_name=table)
-        s3_client.upload_file(f"/tmp/{table}.csv", "mourne-s3-totes-sys-ingestion-bucket-3", timestamp["filepath"] + '/' + table + '.csv')
+        s3_client.upload_file(f"/tmp/{table}.csv", bucket_name, timestamp["filepath"] + '/' + table + '.csv')
 
 
 #lambda_handler(event={"tables":["sales_order", "design"]},context={})
