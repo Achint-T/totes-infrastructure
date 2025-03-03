@@ -16,3 +16,7 @@ data "aws_iam_policy_document" "s3_document" {
     ]
   }
 }
+
+data "aws_s3_bucket" "s3_ingestion_bucket" {
+  bucket = "your-ingestion-bucket-name"
+}
