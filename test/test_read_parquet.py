@@ -159,7 +159,6 @@ class TestReadParquetFromS3:
     def test_giving_s3_client_and_s3_key_when_read_parquet_from_s3_then_not_modify_input_arguments(
         self, parquet_file_in_s3
     ):
-        """Test that read_parquet_from_s3 does not modify input arguments."""
         s3_client, _, s3_key, _, _, _, _ = parquet_file_in_s3
 
         initial_s3_client = s3_client
@@ -173,7 +172,6 @@ class TestReadParquetFromS3:
     def test_giving_no_s3_bucket_name_env_var_when_read_parquet_from_s3_then_raise_value_error(
         self, aws_setup
     ):
-        """Test when BUCKET_NAME environment variable is not set, raise ValueError."""
         s3_client, _ = aws_setup
         s3_key = "test_file.parquet"
         del os.environ["BUCKET_NAME"]
