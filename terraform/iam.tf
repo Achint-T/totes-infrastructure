@@ -222,17 +222,28 @@ resource "aws_iam_policy" "step_functions_policy" {
   name        = "step-functions-policy-lambda-invoke"
   description = "Policy to allow Step Functions to invoke Lambda function"
   policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "lambda:InvokeFunction"
-        ],
-        Effect   = "Allow",
-        Resource = ["*"]
-      },
-    ]
-  })
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"lambda:InvokeFunction"
+			],
+			"Resource": [
+				"arn:aws:lambda:eu-west-2:390402560878:function:ingestion_handler:*"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"lambda:InvokeFunction"
+			],
+			"Resource": [
+				"arn:aws:lambda:eu-west-2:390402560878:function:ingestion_handler"
+			]
+		}
+	]
+})
 }
 
 resource "aws_iam_role_policy_attachment" "step_functions_policy_attachment" {
