@@ -70,6 +70,7 @@ resource "aws_lambda_function" "ingestion_handler" {
       BUCKET_NAME = aws_s3_bucket.s3_ingestion_bucket.bucket
     }
   }
+  depends_on = [ aws_s3_bucket.s3_ingestion_bucket ]
 }
 
 
