@@ -216,3 +216,26 @@ resource "aws_iam_role_policy_attachment" "lambda_secretsmanager_attachment" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.secretsmanager_access_policy.arn
 }
+
+
+resource "aws_iam_policy" "step_functions_policy" {
+  name        = "step-functions-policy-lambda-invoke"
+  description = "Policy to allow Step Functions to invoke Lambda function"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "lambda:InvokeFunction"
+        ],
+        Effect   = "Allow",
+        Resource = ["*"]
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "step_functions_policy_attachment" {
+  role       = aws_iam_role.state_machine_role.name
+  policy_arn = aws_iam_policy.step_functions_policy.arn
+}
