@@ -20,3 +20,7 @@ data "aws_iam_policy_document" "s3_document" {
 data "aws_s3_bucket" "s3_ingestion_bucket" {
   bucket = "mourne-s3-totes-sys-ingestion-bucket"
 }
+
+data "aws_s3_bucket" "s3_transform_bucket" {
+  bucket = "mourne-s3-totes-sys-transform-bucket"
+}
