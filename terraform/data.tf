@@ -2,7 +2,7 @@ data "terraform_remote_state" "s3" {
   backend = "s3"
   config = {
     bucket = "team-mourne-tf-state-bucket"
-    key    = "totes-infrastructure/terraform_no_deletion.tfstate"
+    key    = "totes-infrastructure/terraform-no-deletion.tfstate"
     region = "eu-west-2"
   }
 }

@@ -24,16 +24,6 @@ resource "aws_iam_role" "lambda_role" {
     EOF
 }
 
-data "aws_iam_policy_document" "s3_document" {
-  statement {
-    actions = ["s3:PutObject", "s3:GetObject"]
-    resources = [
-      "${data.terraform_remote_state.s3.outputs.s3_ingestion_bucket_arn}/*", 
-      "${data.terraform_remote_state.s3.outputs.s3_transform_bucket_arn}/*"
-    ]
-  }
-}
-
 data "aws_iam_policy_document" "cw_document" {
   statement {
     actions = ["logs:CreateLogGroup"]
