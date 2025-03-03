@@ -27,7 +27,7 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
             "transaction"
           ]
         },
-        "FunctionName": "arn:aws:lambda:eu-west-2:180294204691:function:ingestion_handler:$LATEST"
+        "FunctionName": "ingestion_handler"
       },
       "Retry": [
         {
@@ -51,7 +51,7 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
           "timestamp": "sampleValue1",
           "uuid": "uniquenumber"
         },
-        "FunctionName": "arn:aws:lambda:eu-west-2:180294204691:function:ingestion_handler:$LATEST" #update me
+        "FunctionName": "transform_lambda"
       },
       "Retry": [
         {
@@ -75,7 +75,7 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
           "timestamp": "sampleValue1",
           "uuid": "uniquenumber"
         },
-        "FunctionName": "arn:aws:lambda:eu-west-2:180294204691:function:ingestion_handler:$LATEST" #update me
+        "FunctionName": "load_lambda" #update me
       },
       "Retry": [
         {
