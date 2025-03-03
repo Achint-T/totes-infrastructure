@@ -1,11 +1,16 @@
 import pandas as pd
 
-# Inputs: Pandas dataframe for staff
-# Create new dataframe with data that has been transformed
-# Return new dataframe 
-
 def util_dim_staff(df_staff, df_department):
-    #error handling for empty dataframes and missing columns. raising errors
+    """Performs transformation on input dataframes to convert them to suitable
+       structure for data warehouse.
+       
+       Args:
+       df_staff: The dataframe created from the staff table csv.
+       df_department: The dataframe created from the department csv.
+       
+       Returns:
+       df_dim_staff - a dataframe ready to be converted to parquet file."""
+
     #instead of only returning messages (apart from for df_fact_sales_order where i couldn't get this to work)
     
     if df_staff.empty:
