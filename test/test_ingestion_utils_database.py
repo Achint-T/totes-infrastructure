@@ -2,7 +2,7 @@ import pytest
 import boto3
 import os
 from unittest.mock import MagicMock 
-from src.ingestion_utils.database_utils import create_connection, get_recent_additions, get_last_upload_date, get_current_time
+from src.ingestion_utils.database_utils import create_connection, get_recent_additions, get_last_upload_date, get_current_time, put_last_upload_date
 from moto import mock_aws
 
 @pytest.fixture(scope="function", autouse=True)
@@ -136,3 +136,29 @@ class TestGetCurrentTime:
         input = [2021,4,15,3,17,53]
         output = get_current_time(input)
         assert output == expected_output
+
+class TestPutLastUploadDate:
+    def test_update_secret_if_exsists(
+        self, secrets_client
+    ):
+        secret_name = "lastupload"
+        secrets_client.create_secret(
+            Name=secret_name,
+            SecretString="1999-04-30 14:56:09")
+        
+        put_last_upload_date([2025,1,23,14,15,59],secrets_client)
+        
+        assert secrets_client.get_secret_value(SecretId = 'lastupload')['SecretString'] == '2025-01-23 14:15:59'
+
+    def test_create_new_secret_if_doesnt_exsist(
+        self, secrets_client
+    ):
+        put_last_upload_date([2025,1,23,14,15,59],secrets_client)
+        assert secrets_client.get_secret_value(SecretId = 'lastupload')['SecretString'] == '2025-01-23 14:15:59'
+
+    def test_puts_raises_exception_when_theres_an_error(self, secrets_client):
+
+        with pytest.raises(Exception) as error:
+            put_last_upload_date([],'hi')
+
+        assert "Error putting last upload" in str(error.value)
