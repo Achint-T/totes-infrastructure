@@ -1,7 +1,7 @@
 import pandas as pd
 
 def util_dim_design(df_design):
-    """Performs transformation on dataframe to convert it to suitable
+    """Performs transformation on input dataframe to convert it to suitable
        structure for data warehouse.
        
        Args:

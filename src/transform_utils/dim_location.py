@@ -1,10 +1,15 @@
 import pandas as pd 
 
-# Inputs: Pandas dataframe from the ingested address table
-# Process: Create new dataframe with data that has been transformed 
-# Output: Return newly transformed dim_location dataframe
-
 def util_dim_location(df_address):
+    """Performs transformation on input dataframe to convert it to suitable
+       structure for data warehouse.
+       
+       Args:
+       df_address: The dataframe created from the address table csv.
+       
+       Returns:
+       df_dim_location - a dataframe ready to be converted to parquet file."""
+    
     df_dim_location = pd.DataFrame()
 
     if df_address.empty:
