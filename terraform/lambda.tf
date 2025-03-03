@@ -67,12 +67,10 @@ resource "aws_lambda_function" "ingestion_handler" {
 
   environment {
     variables = {
-      BUCKET_NAME = aws_s3_bucket.s3_ingestion_bucket.bucket
+      BUCKET_NAME = data.aws_s3_bucket.s3_ingestion_bucket.bucket
     }
   }
-  depends_on = [ aws_s3_bucket.s3_ingestion_bucket ]
 }
-
 
 # Transform lambda 
 
