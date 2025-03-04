@@ -82,4 +82,24 @@ def get_last_upload_date(secretsclient):
     except Exception as e:
 
         raise Exception(f"Error fetching last upload: {e}")
+
+def put_last_upload_date(time_object, secretclient):
+
+    '''
+    Takes in the timeobject and secretlient and updates the secret
+    '''
+
+    date = '-'.join([str(number).rjust(2,'0') for number in time_object[:3]])
+    hours = ':'.join([str(number).rjust(2,'0') for number in time_object[3:6]])
+    timestamp = f'{date} {hours}'
+
+    try:
+        secretclient.update_secret(SecretId='lastupload',SecretString=timestamp)
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceNotFoundException":
+            secretclient.create_secret(Name='lastupload',SecretString=timestamp)
+        else:
+            raise Exception(f"Error putting last upload: {e}")
+    except Exception as e:
+        raise Exception(f"Error putting last upload: {e}")
    
