@@ -193,7 +193,9 @@ resource "aws_iam_policy" "secretsmanager_access_policy" {
       {
         Action = [
           "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret" 
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:CreateSecret",
+          "secretsmanager:UpdateSecret" 
         ],
         Effect = "Allow",
         Resource = ["*"]

@@ -1,7 +1,7 @@
 import boto3
 from helpers import fetch_credentials, export_db_creds_to_env
 from ingestion_utils.file_utils import data_to_csv, get_current_time
-from ingestion_utils.database_utils import create_connection, close_db_connection, get_recent_additions, get_last_upload_date
+from ingestion_utils.database_utils import create_connection, close_db_connection, get_recent_additions, get_last_upload_date, put_last_upload_date
 import time
 import logging
 import os
@@ -27,8 +27,10 @@ def lambda_handler(event, context):
         tables_to_ingest = event["tables"]
         conn = get_connection()
         last_date = get_last_run_date()
-        timestamp = get_current_time(time.gmtime())
+        time_now = time.gmtime()
+        timestamp = get_current_time(time_now)
         save_data_to_s3(conn, tables_to_ingest, last_date, timestamp)
+        put_last_run_date(time_now)
 
         logging.info(f"Extraction run successfully for tables: {tables_to_ingest}")
         return {"statusCode": 200, "body": "Extraction run successfully"}
@@ -52,6 +54,9 @@ def get_connection(secret_client = secret_client):
 
 def get_last_run_date(secret_client = secret_client):
     return get_last_upload_date(secret_client)
+
+def put_last_run_date(timeobject, secret_client = secret_client):
+    return put_last_upload_date(timeobject, secret_client)
 
 def save_data_to_s3(conn, tables_to_ingest,last_date, timestamp, s3_client=s3_client,):
     for table in tables_to_ingest:
