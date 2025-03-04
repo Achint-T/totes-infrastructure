@@ -5,7 +5,7 @@ import time
 
 
 def create_connection() -> Connection:
-    """Creates a database connection using environment variables.
+    """Creates a database connection using environment variables
 
     This function reads connection parameters from environment variables
     and establishes a database connection.
