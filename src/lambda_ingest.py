@@ -56,7 +56,7 @@ def get_last_run_date(secret_client = secret_client):
     return get_last_upload_date(secret_client)
 
 def put_last_run_date(timeobject, secret_client = secret_client):
-    return put_last_run_date(timeobject, secret_client)
+    return put_last_upload_date(timeobject, secret_client)
 
 def save_data_to_s3(conn, tables_to_ingest,last_date, timestamp, s3_client=s3_client,):
     for table in tables_to_ingest:
