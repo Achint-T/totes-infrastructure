@@ -7,9 +7,9 @@ data "archive_file" "ingestion_lambda" {
 resource "null_resource" "prepare_layer_files" {
   triggers = {
     
-    helper_file_hash = filebase64sha256("${path.module}/../src/ingestion_utils/database_utils.py")
-    helper_file_hash = filebase64sha256("${path.module}/../src/ingestion_utils/file_utils.py")
-    helper_file_hash = filebase64sha256("${path.module}/../src/helpers.py")
+    helper_file_hash_1 = filebase64sha256("${path.module}/../src/ingestion_utils/database_utils.py")
+    helper_file_hash_2 = filebase64sha256("${path.module}/../src/ingestion_utils/file_utils.py")
+    helper_file_hash_3 = filebase64sha256("${path.module}/../src/helpers.py")
     
 }
 
