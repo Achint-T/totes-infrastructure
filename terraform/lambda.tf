@@ -96,6 +96,38 @@ resource "aws_lambda_function" "transform_handler" {
   layers           = [aws_lambda_layer_version.helper_lambda_layer.arn]
   handler          = "lambda_transform.lambda_handler"
   runtime          = "python3.12"
-  timeout          = 30
+  timeout          = 60
 }
 
+# Load Lambda
+
+data "archive_file" "load_lambda" {
+  type        = "zip"
+  output_path = "${path.module}/../packages/load/function.zip"
+  source_file = "${path.module}/../src/lambda_load.py"
+}
+
+resource "aws_s3_object" "load_lambda_code" {
+  bucket = aws_s3_bucket.code_bucket.bucket
+  key    = "load/function.zip"
+  source = data.archive_file.load_lambda.output_path
+  etag   = filemd5(data.archive_file.transform_lambda.output_path)
+}
+
+resource "aws_lambda_function" "load_handler" {
+  function_name    = "load_handler"
+  s3_bucket        = aws_s3_bucket.code_bucket.bucket
+  s3_key           = aws_s3_object.load_lambda_code.key
+  source_code_hash = data.archive_file.load_lambda.output_base64sha256
+  role             = aws_iam_role.lambda_role.arn
+  layers           = [aws_lambda_layer_version.helper_lambda_layer.arn]
+  handler          = "lambda_load.lambda_handler"
+  runtime          = "python3.12"
+  timeout          = 60
+
+  environment {
+    variables = {
+      BUCKET_NAME = data.aws_s3_bucket.s3_transform_bucket.bucket
+    }
+  }
+}
