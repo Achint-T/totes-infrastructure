@@ -22,6 +22,11 @@ def payment():
     df_test = pd.DataFrame(data)
     return df_test
 
+@pytest.fixture
+def payment_missing_columns(payment):
+    df_missing_cols = payment.drop(columns=["payment_id", "transaction_id"])
+    return df_missing_cols
+
 class TestFactPayment:
 
     def test_returns_dataframe(self, payment):
@@ -45,3 +50,14 @@ class TestFactPayment:
         "payment_type_id",
         "paid",
         "payment_date"]
+
+class TestFactPaymentErrors:
+
+    def test_empty_dataframe(self, payment):
+        empty_df = pd.DataFrame()
+        output = util_fact_payment(empty_df)
+        assert output == "Error: The source dataframe for fact_payment is empty"
+
+    def test_missing_columns(self, payment_missing_columns):
+        output = util_fact_payment(payment_missing_columns)
+        assert output == "Error: Missing columns payment_id, transaction_id"

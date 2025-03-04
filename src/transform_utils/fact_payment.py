@@ -40,7 +40,7 @@ def util_fact_payment(df_payment):
     ]
 
     if df_payment.empty:
-        return "The source dataframe for fact_payment is empty"
+        return "Error: The source dataframe for fact_payment is empty"
     col_missing = [col for col in required_columns if col not in df_payment.columns]
     if col_missing:
         return f"Error: Missing columns {', '.join(col_missing)}"
