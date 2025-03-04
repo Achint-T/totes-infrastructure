@@ -122,7 +122,7 @@ resource "aws_s3_object" "transform_layer_code" {
 bucket = aws_s3_bucket.code_bucket.bucket
   key    = "transform/helpers.zip"
   source = data.archive_file.transform_lambda_layer_arch.output_path
-  etag   = filemd5(data.archive_file.transform_lambda_layer_arch.output_path)
+  #etag   = filemd5(data.archive_file.transform_lambda_layer_arch.output_path)
   depends_on = [ null_resource.prepare_layer_files_transform ]
 }
 
