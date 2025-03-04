@@ -1,17 +1,3 @@
-"""
-counterparty_id comes from payment table of same column name
-
-payment_amount comes from payment table of same column name
-
-currency_id comes from payment table of same column name
-
-payment_type_id comes from payment table of same column name
-
-paid comes from payment table of same column name
-
-payment_date comes from payment table of same column name
-"""
-
 import pandas as pd
 
 def util_fact_payment(df_payment):
