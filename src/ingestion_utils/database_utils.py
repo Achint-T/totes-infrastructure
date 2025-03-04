@@ -82,4 +82,26 @@ def get_last_upload_date(secretsclient):
     except Exception as e:
 
         raise Exception(f"Error fetching last upload: {e}")
+
+def put_last_upload_date(time_object, secretclient):
+    '''
+    Takes in the timeobject from time.gmtime() or a list in the form [year,month,day,hour,minute,second] and secret client from boto3.client
+        - if the secrets exsists it updates it otherwise creates a new secret called 'lastupload'
+    returns nothing
+    raises an error if it fails to put the secret e.g. invalid client
+    '''
+
+    date = '-'.join([str(number).rjust(2,'0') for number in time_object[:3]])
+    hours = ':'.join([str(number).rjust(2,'0') for number in time_object[3:6]])
+    timestamp = f'{date} {hours}'
+
+    try:
+        secretclient.update_secret(SecretId='lastupload',SecretString=timestamp)
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceNotFoundException":
+            secretclient.create_secret(Name='lastupload',SecretString=timestamp)
+        else:
+            raise Exception(f"Error putting last upload: {e}")
+    except Exception as e:
+        raise Exception(f"Error putting last upload: {e}")
    
