@@ -152,7 +152,7 @@ resource "aws_lambda_function" "transform_handler" {
   s3_key           = aws_s3_object.transform_lambda_code.key
   source_code_hash = data.archive_file.transform_lambda.output_base64sha256
   role             = aws_iam_role.lambda_role.arn
-  layers           = [aws_lambda_layer_version.transform_lambda_layer.arn]
+  layers           = [aws_lambda_layer_version.transform_lambda_layer.arn, "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"] #attach aws pandas layer with arn
   handler          = "lambda_transform.lambda_handler"
   runtime          = "python3.12"
   timeout          = 30
