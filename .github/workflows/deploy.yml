@@ -45,13 +45,13 @@ jobs:
       - name: terraform init
         working-directory: terraform
         run: terraform init
-      - name: terraform plan 
-        working-directory: terraform
-        run: terraform plan
-      - name: terraform format 
+      - name: terraform format
         working-directory: terraform
         run: terraform fmt
+      - name: terraform plan
+        working-directory: terraform
+        run: terraform plan
       - name: terraform apply 
         working-directory: terraform
-        run: terraform apply -auto-approve
+        run: terraform apply -replace=aws_lambda_layer_version.helper_lambda_layer -auto-approve
 
