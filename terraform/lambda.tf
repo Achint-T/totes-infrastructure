@@ -45,6 +45,7 @@ resource "aws_s3_object" "helper_layer_code" {
 bucket = aws_s3_bucket.code_bucket.bucket
   key    = "ingestion/helpers.zip"
   source = data.archive_file.helper_lambda_layer.output_path
+  etag   = filemd5(data.archive_file.helper_lambda_layer.output_path)
 }
 
 resource "aws_lambda_layer_version" "helper_lambda_layer" {
