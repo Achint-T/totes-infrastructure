@@ -27,3 +27,17 @@ def payment_missing_unnecessary_columns(payment_type):
 def payment_missing_required_columns(payment_type):
     df_missing_required_columns = payment_type.drop(columns=["payment_type_id"])
     return df_missing_required_columns
+
+class TestPayment_type:
+
+    def test_returns_dataframe(self, payment_type):
+        output = util_dim_payment_type(payment_type)
+        assert isinstance(output, pd.DataFrame)
+
+    def test_returns_correct_columns(self, payment_type):
+        output = util_dim_payment_type(payment_type)
+        assert list(output.columns) == ["payment_type_id", "payment_type_name"]
+
+    def test_returns_correct_columns_when_missing_unnecessary_columns(self, payment_missing_unnecessary_columns):
+        output = util_dim_payment_type(payment_missing_unnecessary_columns)
+        assert list(output.columns) == ["payment_type_id", "payment_type_name"]
