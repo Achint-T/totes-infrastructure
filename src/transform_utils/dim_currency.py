@@ -1,14 +1,6 @@
 import pandas as pd 
 import requests
 
-# def str_currency_name(str_currency_code_value):
-#     str_currency_code_value_lower = str_currency_code_value.lower()
-#     URL = "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies.json"
-#     curr_rates = requests.get(url=URL)
-#     dict_curr_rates = curr_rates.json()
-#     return dict_curr_rates[str_currency_code_value_lower]
-
-
 def util_dim_currency(df_currency):
     """Performs transformation on input dataframe to convert it to suitable
        structure for data warehouse. 
@@ -41,6 +33,7 @@ def util_dim_currency(df_currency):
     lst_currency_name_values = [dict_curr_rates[currency_code_value.lower()] for currency_code_value in lst_currency_code_values]
 
     df_dim_currency['currency_name'] = lst_currency_name_values
+    df_dim_currency.index.name = "currency_id"
     return df_dim_currency
 
 
