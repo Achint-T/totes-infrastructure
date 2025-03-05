@@ -109,7 +109,7 @@ def get_new_tables(ingestion_bucket, transformed_bucket):
     table_relations = {'fact_sales_order': ['sales_order'],
                        'dim_staff': ['staff','department'],
                        'dim_counterparty': ['counterparty', 'address'],
-                       'dim_currency': ['sales_order','currency'],
+                    #    'dim_currency': ['sales_order','currency'],
                     #    'dim_date': ['date'],
                        'dim_design': ['design'],
                        'dim_location': ['address']
@@ -137,7 +137,7 @@ def transform_where_new_tables(ingestion_bucket, transformed_bucket):
     table_relations = {'fact_sales_order': ['sales_order'],
                     'dim_staff': ['staff','department'],
                     'dim_counterparty': ['counterparty', 'address'],
-                    'dim_currency': ['sales_order','currency'],
+                    # 'dim_currency': ['sales_order','currency'],
                     'dim_date': ['date'],
                     'dim_design': ['design'],
                     'dim_location': ['address']
