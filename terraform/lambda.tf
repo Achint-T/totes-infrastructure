@@ -160,6 +160,50 @@ resource "aws_lambda_function" "transform_handler" {
 
 # Load Lambda
 
+resource "null_resource" "prepare_layer_files_load" {
+  triggers = {
+    
+    helper_file_hash_1 = filebase64sha256("${path.module}/../src/load_utils/read_parquet.py")
+    helper_file_hash_2 = filebase64sha256("${path.module}/../src/load_utils/insert_dataframe_to_dw.py")
+    helper_file_hash_2 = filebase64sha256("${path.module}/../src/helpers.py")
+    
+}
+
+  provisioner "local-exec" {
+    command = <<EOT
+    LAYER_PATH="${path.module}/../packages/load/layer/python/lib/python3.12/site-packages"
+      mkdir -p "$LAYER_PATH"
+      mkdir -p "$LAYER_PATH/load_utils"
+      cp "${path.module}/../src/helpers.py" "$LAYER_PATH/helpers.py"
+      cp "${path.module}/../src/load_utils/read_parquet.py" "$LAYER_PATH/load_utils/read_parquet.py"
+      cp "${path.module}/../src/load_utils/insert_dataframe_to_dw.py" "$LAYER_PATH/load_utils/insert_dataframe_to_dw.py"
+
+    EOT
+  }
+}
+
+data "archive_file" "load_lambda_layer_arch" {
+  type        = "zip"
+  output_path = "${path.module}/../packages/load/helpers.zip"
+  source_dir = "${path.module}/../packages/load/layer"
+  depends_on = [ null_resource.prepare_layer_files_load ]
+}
+
+resource "aws_s3_object" "load_layer_code" {
+bucket = aws_s3_bucket.code_bucket.bucket
+  key    = "load/helpers.zip"
+  source = data.archive_file.load_lambda_layer_arch.output_path
+  #etag   = filemd5(data.archive_file.load_lambda_layer_arch.output_path)
+  depends_on = [ null_resource.prepare_layer_files_load ]
+}
+
+resource "aws_lambda_layer_version" "load_lambda_layer" {
+  layer_name          = "load-layer" 
+  s3_bucket           = aws_s3_bucket.code_bucket.id
+  s3_key              = aws_s3_object.load_layer_code.key
+  s3_object_version   = aws_s3_object.load_layer_code.version_id
+}
+
 data "archive_file" "load_lambda" {
   type        = "zip"
   output_path = "${path.module}/../packages/load/function.zip"
@@ -179,7 +223,7 @@ resource "aws_lambda_function" "load_handler" {
   s3_key           = aws_s3_object.load_lambda_code.key
   source_code_hash = data.archive_file.load_lambda.output_base64sha256
   role             = aws_iam_role.lambda_role.arn
-  layers           = [aws_lambda_layer_version.helper_lambda_layer.arn]
+  layers           = [aws_lambda_layer_version.load_lambda_layer.arn,"arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"] #attach aws pandas layer with arn]
   handler          = "lambda_load.lambda_handler"
   runtime          = "python3.12"
   timeout          = 60
