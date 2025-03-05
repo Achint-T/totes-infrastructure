@@ -18,10 +18,61 @@ from src.transform_utils.dim_date import util_dim_date
 from src.transform_utils.dim_design import util_dim_design
 from src.transform_utils.dim_location import util_dim_location
 import boto3
+from botocore.exceptions import ClientError
 from datetime import datetime, UTC
 import logging
 
 s3_client = boto3.client('s3')
+secrets_client = boto3.client('secretsmanager')
+
+def get_last_upload_timestamp(secretsclient):
+    """Retrieves the date of the last ingestion which is stored inside a secret.
+
+    Args:
+        secretsclient: Boto3 client connecting to aws secret manager
+
+    Returns:
+        the value of the last upload date in the form of a time stamp 'YYYY-MM-DD 00:00:00' - defaults to the start of 2020 if no value found
+    """
+    try:
+        timestamp_str = secretsclient.get_secret_value(SecretId='lastupload')['SecretString']
+        last_upload_timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+        last_upload_timestamp = last_upload_timestamp.replace(tzinfo=UTC)
+
+        print(last_upload_timestamp)
+        return last_upload_timestamp
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceNotFoundException":
+            return '2020-01-01 00:00:00'
+        else:
+            raise Exception(f"Error fetching last upload: {e}")
+    except Exception as e:
+        raise Exception(f"Error fetching last upload: {e}")
+
+def get_latest_ingested_tables(ingestion_bucket, tables_to_check, secret_name):
+    """
+    compare the LastModified timestamp of files in the ingestion bucket with the
+    last upload timestamp from Secrets Manager. Return the latest ingested tables.
+    """
+    last_upload_timestamp = get_last_upload_timestamp(secrets_client)
+    if not last_upload_timestamp:
+        print('could not get last upload timestamp from secrets manager')
+        return {}
+    
+    ing_response = s3_client.list_objects_v2(Bucket=ingestion_bucket).get("Contents", [])
+    latest_ingested_tables = {}
+
+    for file in ing_response:
+        table_name = file['Key'].split('/')[-1][0:-4]
+        if table_name in tables_to_check:
+            file_last_modified = file['LastModified']
+            if file_last_modified > last_upload_timestamp:
+                latest_ingested_tables[table_name] = [file['Key'], file_last_modified]
+                print(f"New file for {table_name}: {file['Key']} (LastModified: {file_last_modified})")
+            else:
+                print(f"No new file for {table_name} (LastModified: {file_last_modified})")
+
+    return latest_ingested_tables
 
 def get_new_tables(ingestion_bucket, transformed_bucket, tables_to_check):
     """for each table in transformed bucket (e.g fact_sales_order, dim_staff etc) check if there is a newer
@@ -40,8 +91,8 @@ def get_new_tables(ingestion_bucket, transformed_bucket, tables_to_check):
                        'dim_design': ['design'],
                        'dim_location': ['address']
     }
-    ing_response = s3_client.list_objects_v2(Bucket=ingestion_bucket)['Contents']
-    trans_response = s3_client.list_objects_v2(Bucket=transformed_bucket)['Contents']
+    ing_response = s3_client.list_objects_v2(Bucket=ingestion_bucket).get("Contents",[])
+    trans_response = s3_client.list_objects_v2(Bucket=transformed_bucket).get("Contents",[])
 
     # determine new tables (where there's a newer version of a dependency table in ingested than
     # has been used to construct resultant star schema table in transformed bucket):
@@ -51,31 +102,35 @@ def get_new_tables(ingestion_bucket, transformed_bucket, tables_to_check):
     new_tables = {}
 
     for file in trans_response:
-        if file['Key'].split('/')[0]:
-            if file['Key'].split('/')[0] not in latest_trans_tables or file['LastModified'] > latest_trans_tables[file['Key'].split('/')[0]][1]:
-                latest_trans_tables[file['Key'].split('/')[0]] = [file['Key'],file['LastModified']]
+        table_name = file['Key'].split('/')[0]
+        # if file['Key'].split('/')[0] in table_relations:
+        if table_name not in latest_trans_tables or file['LastModified'] > latest_trans_tables[table_name][1]:
+            latest_trans_tables[table_name] = [file['Key'],file['LastModified']]
     print(f'latest tranformed tables -------->{latest_trans_tables}')
+    print(f'LATEST TRANSFORMED TABLES ---->{latest_trans_tables.keys()}')
 
+    print(ing_response)
+    print(len(ing_response))
     for file in ing_response:
-        if file['Key'].split('/')[0] in tables_to_check:
-            if file['Key'].split('/')[0] not in latest_ing_tables or file['LastModified'] > latest_ing_tables[file['Key'].split('/')[0]][1]:
-                latest_ing_tables[file['Key'].split('/')[0]] = [file['Key'],file['LastModified']]
+        table_name = file['Key'].split('/')[-1][0:-4]
+        if table_name in tables_to_check:
+            if table_name not in latest_ing_tables or file['LastModified'] > latest_ing_tables[table_name][1]:
+                latest_ing_tables[table_name] = [file['Key'], file['LastModified']]
+        
     print(f'latest ingested tables -------->{latest_ing_tables}')
 
+
     for star_table, dependencies in table_relations.items():
-        if star_table in latest_trans_tables:
+        # if star_table in latest_trans_tables:
             for dep in dependencies:
-                if dep in latest_ing_tables and latest_ing_tables[dep][1] > latest_trans_tables[star_table][1]:
+                if dep in latest_ing_tables and latest_ing_tables[dep][1] > latest_trans_tables.get(star_table, [None, datetime(1900, 11, 21, 16, 30, tzinfo=UTC)])[1]:
                     new_tables[dep] = latest_ing_tables[dep]
 
     print(f'NEW TABLES ------->{new_tables}')
 
     return {'new_tables': new_tables, 'latest_ing_tables': latest_ing_tables}
 
-# get_new_tables('fake-ingestion','mock-transformed',['sales_order','staff','currency', 'design','counterparty','date',
-#                     'address', 'department'])
-
-def transform_where_new_tables(new_tables, latest_ing_tables, ingestion_bucket):
+def transform_where_new_tables(new_tables, latest_ing_tables, ingestion_bucket, transformed_bucket):
     """runs relevant transformation util (returning pandas dataframe) where a star schema table has new dependency tables"""
 
     table_relations = {'fact_sales_order': ['sales_order'],
@@ -87,10 +142,18 @@ def transform_where_new_tables(new_tables, latest_ing_tables, ingestion_bucket):
                     'dim_location': ['address']
     }
     #determine which star schema tables need to be updated (have new dependency table versions):
+
+    trans_response = s3_client.list_objects_v2(Bucket=transformed_bucket).get("Contents",[])
+    latest_trans_tables = {}
+    for file in trans_response:
+        if file['Key'].split('/')[0]:
+            if file['Key'].split('/')[0] not in latest_trans_tables or file['LastModified'] > latest_trans_tables[file['Key'].split('/')[0]][1]:
+                latest_trans_tables[file['Key'].split('/')[0]] = [file['Key'],file['LastModified']]
+    print(f'latest tranformed tables -------->{latest_trans_tables}')
     s_tables_to_update = []
 
     for s_table in table_relations:
-        if any(x in table_relations[s_table] for x in new_tables.keys()):
+        if any(x in table_relations[s_table] for x in new_tables.keys()) or s_table not in latest_trans_tables:
             s_tables_to_update.append(s_table)
             print(f'needs to be updated - new dependency tables found: {s_table}')
 
@@ -138,12 +201,8 @@ def transform_where_new_tables(new_tables, latest_ing_tables, ingestion_bucket):
     return df_transformed
 
 
-# transform_where_new_tables(get_new_tables('fake-ingestion','mock-transformed',['sales_order','staff','currency', 'design','counterparty','date',
-#                     'address', 'department'])['new_tables'],get_new_tables('fake-ingestion','mock-transformed',['sales_order','staff','currency', 'design','counterparty','date',
-#                     'address', 'department'])['latest_ing_tables'],'fake-ingestion')
-    
-
 def lambda_handler(event,context):
+    #no need to pass bucket names do env vars
     """Event example:
     {
         "ingestion_bucket": "fake-ingested",
@@ -167,7 +226,7 @@ def lambda_handler(event,context):
         print("no new tables to process")
         return {"message": "No updates found"}
     
-    df_transformed = transform_where_new_tables(new_tables, latest_ing_tables, ingestion_bucket)
+    df_transformed = transform_where_new_tables(new_tables, latest_ing_tables, ingestion_bucket,transformed_bucket)
 
     now = datetime.now(UTC)
     timestamp_path = f"{now.year}/{now.month:02}/{now.day:02}/{now.hour:02}/{now.minute:02}"
@@ -182,9 +241,27 @@ def lambda_handler(event,context):
         "transformed_tables": list(df_transformed.keys())
     }
 
+"""RUN GET_NEW_TABLES"""
+
+# get_new_tables('mourne-s3-totes-sys-ingestion-bucket','mock-transformed',['sales_order','staff','currency', 'design','counterparty','date',
+#                     'address', 'department'])
+
+"""RUN TRANSFORM_WHERE_NEW_TABLES"""
+
+# transform_where_new_tables(get_new_tables('mourne-s3-totes-sys-ingestion-bucket','mock-transformed',['sales_order','staff','currency', 'design','counterparty','date',
+#                     'address', 'department'])['new_tables'],get_new_tables('mourne-s3-totes-sys-ingestion-bucket','mock-transformed',['sales_order','staff','currency', 'design','counterparty','date',
+#                     'address', 'department'])['latest_ing_tables'],'mourne-s3-totes-sys-ingestion-bucket','mock-transformed')
+    
+"""RUN LAMBDA_HANDLER"""
+
 event = {
-    "ingestion_bucket": "fake-ingestion",
+    "ingestion_bucket": "mourne-s3-totes-sys-ingestion-bucket",
     "transformed_bucket": "mock-transformed",
     "tables_to_check": ["sales_order", "staff", "currency", "design", "counterparty", "date", "address", "department"]
 }
 lambda_handler(event=event, context={})
+
+# """RUN get_latest_ingested_tables"""
+
+# to_check = ["sales_order", "staff", "currency", "design", "counterparty", "date", "address", "department"]
+# get_latest_ingested_tables('mourne-s3-totes-sys-ingestion-bucket', to_check, 'lastupload')
