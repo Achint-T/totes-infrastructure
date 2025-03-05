@@ -196,30 +196,3 @@ def transform_where_new_tables(ingestion_bucket, transformed_bucket):
     print(f"Transformed tables: {list(df_transformed.keys())}")
 
     return df_transformed
-
-
-
-"""RUN GET_NEW_TABLES"""
-
-# get_new_tables('mourne-s3-totes-sys-ingestion-bucket','mock-transformed',['sales_order','staff','currency', 'design','counterparty','date',
-#                     'address', 'department'])
-
-"""RUN TRANSFORM_WHERE_NEW_TABLES"""
-
-# transform_where_new_tables(get_new_tables('mourne-s3-totes-sys-ingestion-bucket','mock-transformed',['sales_order','staff','currency', 'design','counterparty','date',
-#                     'address', 'department'])['new_tables'],get_new_tables('mourne-s3-totes-sys-ingestion-bucket','mock-transformed',['sales_order','staff','currency', 'design','counterparty','date',
-#                     'address', 'department'])['latest_ing_tables'],'mourne-s3-totes-sys-ingestion-bucket','mock-transformed')
-    
-"""RUN LAMBDA_HANDLER"""
-
-event = {
-    "ingestion_bucket": "mourne-s3-totes-sys-ingestion-bucket",
-    "transformed_bucket": "mock-transformed",
-    "tables_to_check": ["sales_order", "staff", "currency", "design", "counterparty", "date", "address", "department"]
-}
-# lambda_handler(event=event, context={})
-
-"""RUN get_latest_ingested_tables"""
-
-# to_check = ["sales_order", "staff", "currency", "design", "counterparty", "date", "address", "department"]
-# get_latest_ingested_tables('mourne-s3-totes-sys-ingestion-bucket', to_check)
