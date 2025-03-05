@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def fetch_credentials(secrets_client: BaseClient, secret_name: str) -> Dict[str, Any]:
-    """Fetches database credentials from AWS Secrets Manager.
+    """Fetches database credentials from AWS Secrets Manager
 
     Uses a provided boto3 Secrets Manager client to retrieve a secret value
     and parses it as JSON.
