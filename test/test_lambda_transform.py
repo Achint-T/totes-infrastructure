@@ -13,6 +13,6 @@ from src.lambda_transform import get_latest_ingested_tables,get_latest_transform
 event = {
     "ingestion_bucket": "mourne-s3-totes-sys-ingestion-bucket",
     "transformed_bucket": "mock-transformed",
-    "tables_to_check": ["sales_order", "staff", "currency", "design", "counterparty", "date", "address", "department"]
+    "tables_to_check": ["sales_order", "staff", "design", "counterparty", "date", "address", "department"]
 }
 lambda_handler(event=event, context={})
