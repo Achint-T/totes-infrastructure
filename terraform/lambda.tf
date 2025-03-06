@@ -89,6 +89,9 @@ resource "null_resource" "prepare_layer_files_transform" {
     helper_file_hash_7 = filebase64sha256("${path.module}/../src/transform_utils/dim_staff.py")
     helper_file_hash_8 = filebase64sha256("${path.module}/../src/transform_utils/fact_sales_order.py")
     helper_file_hash_9 = filebase64sha256("${path.module}/../src/transform_utils/file_utils.py")
+    helper_file_hash_9 = filebase64sha256("${path.module}/../src/transform_utils/fact_payment.py")
+    helper_file_hash_9 = filebase64sha256("${path.module}/../src/transform_utils/dim_transaction.py")
+    helper_file_hash_9 = filebase64sha256("${path.module}/../src/transform_utils/dim_payment_type.py")
     
 }
 
@@ -106,6 +109,9 @@ resource "null_resource" "prepare_layer_files_transform" {
       cp "${path.module}/../src/transform_utils/dim_staff.py" "$LAYER_PATH/transform_utils/dim_staff.py"
       cp "${path.module}/../src/transform_utils/fact_sales_order.py" "$LAYER_PATH/transform_utils/fact_sales_order.py"
       cp "${path.module}/../src/transform_utils/file_utils.py" "$LAYER_PATH/transform_utils/file_utils.py"
+      cp "${path.module}/../src/transform_utils/file_utils.py" "$LAYER_PATH/transform_utils/fact_payment.py"
+      cp "${path.module}/../src/transform_utils/file_utils.py" "$LAYER_PATH/transform_utils/dim_transaction.py"
+      cp "${path.module}/../src/transform_utils/file_utils.py" "$LAYER_PATH/transform_utils/dim_payment_type.py"
 
     EOT
   }

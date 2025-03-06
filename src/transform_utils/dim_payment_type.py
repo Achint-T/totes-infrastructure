@@ -1,6 +1,15 @@
 import pandas as pd
 
 def util_dim_payment_type(df_payment_type):
+    """Performs transformation on input dataframe to convert it to suitable
+       structure for data warehouse.
+       
+       Args:
+       df_payment_type: The dataframe created from the transaction table csv.
+       
+       Returns:
+       df_dim_payment_type - a dataframe ready to be converted to parquet file."""
+    
     df_dim_payment_type = pd.DataFrame()
 
     required_columns = [
