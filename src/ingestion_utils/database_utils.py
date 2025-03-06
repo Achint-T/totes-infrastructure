@@ -1,4 +1,4 @@
-from pg8000.native import Connection
+from pg8000.native import Connection, identifier, literal
 import os
 from botocore.exceptions import ClientError
 import time
@@ -55,7 +55,7 @@ def get_recent_additions(conn, tablename: str, updatedate: str, time_now: str) -
         SQL injection prevention
     """
     try:
-        data = conn.run(f'SELECT * FROM {tablename} WHERE last_updated BETWEEN \'{updatedate}\' AND \'{time_now}\';')
+        data = conn.run(f'SELECT * FROM {identifier(tablename)} WHERE last_updated BETWEEN \'{updatedate}\' AND \'{time_now}\';')
         columns_info = conn.columns
         headers = [col["name"] for col in columns_info]
         return {'headers':headers, 'body':data}
