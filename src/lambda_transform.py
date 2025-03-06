@@ -17,7 +17,7 @@ from src.transform_utils.dim_counterparty import util_dim_counterparty
 from src.transform_utils.dim_date import util_dim_date
 from src.transform_utils.dim_design import util_dim_design
 from src.transform_utils.dim_location import util_dim_location
-from src.transform_utils.get_latest_utils import get_latest_ingested_tables,get_latest_transformed_tables,get_new_tables
+from src.transform_utils.get_latest_utils import get_latest_ingested_tables, get_new_tables
 import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime, UTC
@@ -76,14 +76,13 @@ def transform_where_new_tables(ingestion_bucket, transformed_bucket):
     table_relations = {'fact_sales_order': ['sales_order'],
                     'dim_staff': ['staff','department'],
                     'dim_counterparty': ['counterparty', 'address'],
-                    # 'dim_currency': ['sales_order','currency'],
+                    'dim_currency': ['sales_order','currency'],
                     'dim_date': ['date'],
                     'dim_design': ['design'],
                     'dim_location': ['address']
     }
     #determine which star schema tables need to be updated (have new dependency table versions):
 
-    latest_trans_tables = get_latest_transformed_tables(transformed_bucket)
     new_tables = get_new_tables('mourne-s3-totes-sys-ingestion-bucket','mock-transformed')
     tables_to_check = {dep for deps in table_relations.values() for dep in deps}
     latest_ingested_tables = get_latest_ingested_tables(ingestion_bucket,tables_to_check)
@@ -91,7 +90,7 @@ def transform_where_new_tables(ingestion_bucket, transformed_bucket):
     s_tables_to_update = []
 
     for s_table in table_relations:
-        if any(x in table_relations[s_table] for x in new_tables.keys()) or s_table not in latest_trans_tables:
+        if any(x in table_relations[s_table] for x in new_tables.keys()):
             s_tables_to_update.append(s_table)
             print(f'needs to be updated - new dependency tables found: {s_table}')
 
@@ -115,6 +114,7 @@ def transform_where_new_tables(ingestion_bucket, transformed_bucket):
                 loaded_tables.add(table)
                 print(f"Loaded {table} from {key}")
     
+    print(df_dict)
     df_transformed = {}
 
     if "df_sales_order" in df_dict:

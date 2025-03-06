@@ -1,20 +1,47 @@
 import boto3
-from datetime import datetime, UTC
+from datetime import datetime
+import logging
+from datetime import datetime
 
 s3_client = boto3.client('s3')
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+def extract_timestamp_from_filename(filename: str) -> datetime:
+    parts = filename.split('/')
+    y,m,d,h,mi = map(int,parts[:5])
+    return datetime(y,m,d,h,mi)
+
 def get_latest_ingested_tables(ingestion_bucket, tables_to_check):
     """
-    get the latest verison of each table from ingestion
+    get the latest version of each table from ingestion.
+
+    arguments: takes name of ingestion_bucket, list of tables_to_check (e.g ["sales_order", "staff", "design"])
+
+    Returns a dictionary with keys of table names and values of a list of 
+    csv filename, LastModified metadata. 
+    e.g: {'address': ['2025/3/5/17/0/address.csv', datetime.datetime(2025, 3, 5, 17, 0)]}
+
     """
     ing_response = s3_client.list_objects_v2(Bucket=ingestion_bucket).get("Contents", [])
+
+    if len(ing_response) == 0:
+        logging.info('Ingestion bucket is empty. Nothinig to transform')
+    
+    for t in tables_to_check:
+        if t not in ing_response:
+            logging.info(f'table_to_check {t} not present in ingestion bucket')
+
     latest_ingested_tables = {}
 
     for file in ing_response:
         table_name = file['Key'].split('/')[-1][0:-4]
+        file_timestamp = extract_timestamp_from_filename(file['Key'])
         if table_name in tables_to_check:
-            if table_name not in latest_ingested_tables or file['LastModified'] > latest_ingested_tables.get(table_name, [None, datetime(1900, 11, 21, 16, 30, tzinfo=UTC)])[1]:
-                latest_ingested_tables[table_name] = [file['Key'],file['LastModified']]
+            if table_name not in latest_ingested_tables or file_timestamp > latest_ingested_tables.get(table_name, [None, datetime(1500, 3, 5, 17, 0)])[1]:
+                latest_ingested_tables[table_name] = [file['Key'],file_timestamp]
+
     print(f'LATEST INGESTED TABLES --------> {latest_ingested_tables}')
     return latest_ingested_tables
 
