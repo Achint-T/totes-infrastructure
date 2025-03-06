@@ -56,15 +56,12 @@ jobs:
         run: |
           terraform apply \
           -replace=null_resource.prepare_layer_files \
-          -replace=data.archive_file.helper_lambda_layer \
           -replace=aws_s3_object.helper_layer_code \
           -replace=aws_lambda_layer_version.helper_lambda_layer \
           -replace=null_resource.prepare_layer_files_transform \
-          -replace=data.archive_file.transform_lambda_layer_arch \
           -replace=aws_s3_object.transform_layer_code \
           -replace=aws_lambda_layer_version.transform_lambda_layer \
           -replace=null_resource.prepare_layer_files_load \
-          -replace=data.archive_file.load_lambda_layer_arch \
           -replace=aws_s3_object.load_layer_code \
           -replace=aws_lambda_layer_version.load_lambda_layer \
           -auto-approve
