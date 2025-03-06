@@ -15,14 +15,18 @@ jobs:
     steps: 
       - name: Checkout and Clone Repo 
         uses: actions/checkout@v4
+
       - name: Setup Python 
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+
       - name: Create Environment with Requirements
         run: make requirements
+
       - name: Create Dev Setup 
         run: make dev-setup
+
       - name: Run All Checks
         run: make run-checks
 
@@ -33,23 +37,34 @@ jobs:
     steps: 
       - name: Checkout and clone repo 
         uses: actions/checkout@v4
+
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v3
+
       - name: set up credentials
         uses: aws-actions/configure-aws-credentials@v4
         with: 
           aws-region: ${{ secrets.AWS_REGION }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Export Terraform Secret Variables
+        run: |
+          echo "TF_VAR_database_creds_1='${{ secrets.DB_CREDENTIALS }}'" >> $GITHUB_ENV
+          echo "TF_VAR_database_creds_2='${{ secrets.WR_CREDENTIALS }}'" >> $GITHUB_ENV
+
       - name: terraform init
         working-directory: terraform
         run: terraform init
+
       - name: terraform format
         working-directory: terraform
         run: terraform fmt
+
       - name: terraform plan
         working-directory: terraform
         run: terraform plan
+
       - name: terraform apply
         if: github.event_name == 'push'
         working-directory: terraform
