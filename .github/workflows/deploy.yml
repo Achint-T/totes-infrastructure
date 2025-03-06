@@ -50,8 +50,8 @@ jobs:
 
       - name: Export Terraform Secret Variables
         run: |
-          echo "TF_VAR_database_creds_1='${{ secrets.DB_CREDENTIALS }}'" >> $GITHUB_ENV
-          echo "TF_VAR_database_creds_2='${{ secrets.WR_CREDENTIALS }}'" >> $GITHUB_ENV
+          echo "TF_VAR_database_credentials_value='${{ secrets.DB_CREDENTIALS }}'" >> $GITHUB_ENV
+          echo "TF_VAR_warehouse_credentials_value='${{ secrets.WR_CREDENTIALS }}'" >> $GITHUB_ENV
 
       - name: terraform init
         working-directory: terraform
