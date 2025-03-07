@@ -13,8 +13,10 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
         "Payload": {
           "timestamp": "sampleValue1",
           "uuid": "uniquenumber",
-          "tables": [
-            "sales_order",
+          "fact_tables": [
+            "sales_order"
+          ],
+          "dim_tables":[
             "design",
             "currency",
             "staff",
@@ -22,9 +24,7 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
             "address",
             "department",
             "purchase_order",
-            "payment_type",
-            "payment",
-            "transaction"
+            "payment_type"
           ]
         },
         "FunctionName": "ingestion_handler"
