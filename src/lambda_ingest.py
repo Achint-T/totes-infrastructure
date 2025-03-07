@@ -24,24 +24,30 @@ def lambda_handler(event, context):
     """
     conn = None
     try:
-        tables_to_ingest = event["tables"]
+        fact_tables_to_ingest = event["fact_tables"]
+        dim_tables_to_ingest = event["dim_tables"]
+
         conn = get_connection()
         last_date = get_last_run_date()
         time_now = time.gmtime()
         timestamp = get_current_time(time_now)
-        save_data_to_s3(conn, tables_to_ingest, last_date, timestamp)
+
+        fact_keys = save_data_to_s3(conn, fact_tables_to_ingest, timestamp, last_date )
+        logging.info(f"Extraction run successfully for fact tables: {fact_tables_to_ingest}")
+        dim_keys = save_data_to_s3(conn, dim_tables_to_ingest, timestamp)
+        logging.info(f"Extraction run successfully for dimension tables: {dim_tables_to_ingest}")
+
         put_last_run_date(time_now)
 
-        logging.info(f"Extraction run successfully for tables: {tables_to_ingest}")
-        return {"statusCode": 200, "body": "Extraction run successfully"}
+        return {"status_code": 200, "fact_tables": fact_keys, "dim_tables" : dim_keys}
 
     except KeyError as ke:
         logging.error(f"Missing key in event: {ke}")
         #Reconsider suitable status code
-        return {"statusCode": 400, "body": f"Missing table information: {ke}"}
+        return {"status_code": 400, "body": f"Missing table information: {ke}"}
     except Exception as e:
         logging.error(f"Extraction run failed: {e}")
-        return {"statusCode": 500, "body": f"Extraction run failed: {e}"} 
+        return {"status_code": 500, "body": f"Extraction run failed: {e}"} 
     finally:
         if conn:
             close_db_connection(conn)
@@ -58,12 +64,16 @@ def get_last_run_date(secret_client = secret_client):
 def put_last_run_date(timeobject, secret_client = secret_client):
     return put_last_upload_date(timeobject, secret_client)
 
-def save_data_to_s3(conn, tables_to_ingest,last_date, timestamp, s3_client=s3_client,):
+def save_data_to_s3(conn, tables_to_ingest, timestamp, last_date = "2020-01-01 00:00:00", s3_client=s3_client) -> dict:
+    key_dict = {}
     for table in tables_to_ingest:
         data = get_recent_additions(conn, tablename=table, updatedate=last_date, time_now=timestamp["secret"])
+        key = timestamp["filepath"] + '/' + table + '.csv'
         if data["body"]:#check if there is actual data 
             data_to_csv(data, table_name=table)
-            s3_client.upload_file(f"/tmp/{table}.csv", bucket_name, timestamp["filepath"] + '/' + table + '.csv')
+            s3_client.upload_file(f"/tmp/{table}.csv", bucket_name, key)
+            key_dict[table]=key
+    return key_dict
 
 
 #lambda_handler(event={"tables":["sales_order", "design"]},context={})
