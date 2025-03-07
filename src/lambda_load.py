@@ -1,14 +1,13 @@
 import boto3
 import os
 from typing import Dict, Any
-from helpers import fetch_credentials, export_db_creds_to_env
+from src.helpers import fetch_credentials, export_db_creds_to_env
 from src.load_utils.write_dataframe_to_dw import process_dim_tables, process_fact_tables
-from ingestion_utils.database_utils import create_connection
+from src.ingestion_utils.database_utils import create_connection
 import logging
 
 secret_client =  boto3.client("secretsmanager")
 s3_client = boto3.client("s3")
-bucket_name = os.environ["BUCKET_NAME"]
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Lambda handler for loading parquet data from S3 to a data warehouse.
@@ -64,7 +63,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             db_conn.close()
 
 def get_connection(secret_client = secret_client):
-    db_creds = fetch_credentials(secret_client, secret_name="database_credentials")
+    db_creds = fetch_credentials(secret_client, secret_name="data_warehouse_credentials")
     export_db_creds_to_env(db_creds, ["username","password","port","host"])
     conn = create_connection()
     return conn

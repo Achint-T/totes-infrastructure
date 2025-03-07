@@ -1,9 +1,19 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from src.lambda_load import lambda_handler
-
+import os
 
 class TestLambdaHandler:
+    @pytest.fixture(autouse=True)
+    def env_variable(self):
+        variable_name = "BUCKET_NAME"
+        variable_value = "DEMO_BUCKET"
+        os.environ[variable_name] = variable_value
+
+        yield
+
+        if variable_name in os.environ:
+            del os.environ[variable_name]
 
     @pytest.fixture
     def mock_event(self):
@@ -14,7 +24,7 @@ class TestLambdaHandler:
         }
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self, env_variable):
         return MagicMock()
 
     # @patch("src.load_utils.write_dataframe_to_dw.process_fact_tables")
