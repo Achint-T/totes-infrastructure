@@ -211,5 +211,5 @@ event =     {
     "payment_type": "2025/03/06/22/51/payment_type.csv"
   }
 }
-lambda_handler(event,"")
+
 
