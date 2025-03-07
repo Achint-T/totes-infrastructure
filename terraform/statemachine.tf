@@ -51,7 +51,7 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
           "timestamp": "sampleValue1",
           "uuid": "uniquenumber"
         },
-        "FunctionName": "transform_lambda"
+        "FunctionName": "transform_handler"
       },
       "Retry": [
         {
