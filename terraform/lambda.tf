@@ -164,6 +164,14 @@ resource "aws_lambda_function" "transform_handler" {
   handler          = "lambda_transform.lambda_handler"
   runtime          = "python3.12"
   timeout          = 60
+
+
+environment {
+    variables = {
+      INGESTION_BUCKET_NAME = data.aws_s3_bucket.s3_ingestion_bucket.bucket
+      TRANSFORMED_BUCKET_NAME = data.aws_s3_bucket.s3_transform_bucket.bucket
+    }
+  }
 }
 
 # Load Lambda
