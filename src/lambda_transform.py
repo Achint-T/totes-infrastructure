@@ -127,98 +127,89 @@ def run_fact_utils(event, ingestion_bucket_name):
     return transformed_dfs
 
 def lambda_handler(event,context):
-    #no need to pass bucket names do env vars
     """Event example:
      {'fact_tables':{'sales_order': '2025/6/3/16/47/sales_order.csv',...}, 
   'dim_tables':{'staff': '2025/6/3/16/47/staff', 'department': '2025/6/3/16/47/department', ...}}
     """
-    ingestion_bucket = event.get("ingestion_bucket")
-    transformed_bucket = event.get("transformed_bucket")
-    tables_to_check = event.get("tables_to_check")
-    new_tables = get_new_tables(ingestion_bucket, transformed_bucket)
 
-    if not new_tables:
-        print("no new tables to process")
-        return {"message": "No updates found"}
-    
-    if not ingestion_bucket or not transformed_bucket or not tables_to_check:
-        raise ValueError("Missing required parameters: ingestion_bucket, transformed_bucket, tables_to_check")
+    """lambda handler takes event dictionary of fact_table and dim_table dependency csv files w/ filepaths.
+    must run 'run_fact_utils' and 'run_dim_utils to get transformed dataframes of star schema tables.
+    will then write these to transformed bucket as parquet files using 
+    'write_parquet_to_s3(df, bucket, key).
+    returns dictionary of same format of event e.g:
+
+    {
+  "status_code": 200,
+  "fact_tables": {
+    "sales_order": "2025/3/7/10/25/sales_order.csv",
+    "payment": "2025/3/7/10/25/payment.csv",
+    "purchase_order": "2025/3/7/10/25/purchase_order.csv"
+  },
+  "dim_tables": {
+    "design": "2025/3/7/10/25/design.csv",
+    "currency": "2025/3/7/10/25/currency.csv",
+    "staff": "2025/3/7/10/25/staff.csv",
+    "counterparty": "2025/3/7/10/25/counterparty.csv",
+    "address": "2025/3/7/10/25/address.csv",
+    "department": "2025/3/7/10/25/department.csv",
+    "transaction": "2025/3/7/10/25/transaction.csv",
+    "payment_type": "2025/3/7/10/25/payment_type.csv"
+  }
+}
+    '"""
 
     try:
-        #tables to write to s3:
-        to_write = transform_where_new_tables(ingestion_bucket, transformed_bucket)
-        #write tables to s3:    
-
+        dim_table_dfs = run_dim_utils(event, ingestion_bucket)
+        fact_table_dfs = run_fact_utils(event, ingestion_bucket)
+            
         now = datetime.now(UTC)
         timestamp_path = f"{now.year}/{now.month:02}/{now.day:02}/{now.hour:02}/{now.minute:02}"
 
-        for table, df in to_write.items():
-            s3_key = f"{table}/{timestamp_path}/data.parquet"
-            write_parquet_to_s3(df, transformed_bucket, s3_key)
-            print(f"Written {table} to {s3_key}")
+        fact_tables = {}
+        dim_tables = {}
 
+        for table, df in fact_table_dfs.items():
+            s3_key = f"{timestamp_path}/{table}.parquet"
+            write_parquet_to_s3(df, transformed_bucket, s3_key)
+            fact_tables[table] = s3_key
+            logger.info(f"Written {table} to {s3_key}")
+
+        for table, df in dim_table_dfs.items():
+            s3_key = f"{timestamp_path}/{table}.parquet"
+            write_parquet_to_s3(df, transformed_bucket, s3_key)
+            dim_tables[table] = s3_key
+            logger.info(f"Written {table} to {s3_key}")
+
+        print({
+            "status_code": 200,
+            "fact_tables": fact_tables,
+            "dim_tables": dim_tables
+            })
         return {
-            "message": "Transformation complete",
-            "transformed_tables": list(to_write.keys())
-        }
+            "status_code": 200,
+            "fact_tables": fact_tables,
+            "dim_tables": dim_tables
+            }
+
     except Exception as e:
-        logging.error(f"writing to transformed bucket failes: {e}")
+        logging.error(f"writing to transformed bucket failed: {e}")
         return {"statusCode": 500, "body": f"Transform run failed: {e}"}
 
-def transform_where_new_tables(ingestion_bucket, transformed_bucket):
-    """runs relevant transformation util (returning pandas dataframe) where a star schema table has new dependency tables"""
+event =     {
+  "status_code": 200,
+  "fact_tables": {
+    "sales_order": "2025/03/06/22/51/sales_order.csv",
+  },
+  "dim_tables": {
+    "design": "2025/03/06/22/51/design.csv",
+    "currency": "2025/03/06/22/51/currency.csv",
+    "staff": "2025/03/06/22/51/staff.csv",
+    "counterparty": "2025/03/06/22/51/counterparty.csv",
+    "address": "2025/03/06/22/51/address.csv",
+    "department": "2025/03/06/22/51/department.csv",
+    "transaction": "2025/03/06/22/51/transaction.csv",
+    "payment_type": "2025/03/06/22/51/payment_type.csv"
+  }
+}
+lambda_handler(event,"")
 
-    #determine which star schema tables need to be updated (have new dependency table versions):
-
-    new_tables = get_new_tables('mourne-s3-totes-sys-ingestion-bucket','mock-transformed')
-    tables_to_check = {dep for deps in table_relations.values() for dep in deps}
-    latest_ingested_tables = get_latest_ingested_tables(ingestion_bucket,tables_to_check)
-    
-    s_tables_to_update = []
-
-    for s_table in table_relations:
-        if any(x in table_relations[s_table] for x in new_tables.keys()):
-            s_tables_to_update.append(s_table)
-            print(f'needs to be updated - new dependency tables found: {s_table}')
-
-    #read the necessary dependency from the ingestion bucket to update star schema table:
-    df_dict = {}
-    loaded_tables = set()
-
-    for s in s_tables_to_update:
-        for table in table_relations[s]:
-            if table in loaded_tables:
-                continue
-
-            key = None
-            if table in new_tables:
-                key = new_tables[table][0] 
-            elif table in latest_ingested_tables:
-                key = latest_ingested_tables[table][0]
-
-            if key:
-                df_dict[f"df_{table}"] = read_csv_from_s3(ingestion_bucket,key)
-                loaded_tables.add(table)
-                print(f"Loaded {table} from {key}")
-    
-    print(df_dict)
-    df_transformed = {}
-
-    if "df_sales_order" in df_dict:
-        df_transformed["fact_sales_order"] = util_fact_sales_order(df_dict["df_sales_order"])
-
-    if "df_staff" in df_dict and "df_department" in df_dict:
-        df_transformed["dim_staff"] = util_dim_staff(df_dict["df_staff"], df_dict["df_department"])
-
-    if "df_counterparty" in df_dict and "df_address" in df_dict:
-        df_transformed["dim_counterparty"] = util_dim_counterparty(df_dict["df_counterparty"], df_dict["df_address"])
-
-    if "df_design" in df_dict:
-        df_transformed["dim_design"] = util_dim_design(df_dict["df_design"])
-
-    if "df_address" in df_dict:
-        df_transformed["dim_location"] = util_dim_location(df_dict["df_address"])
-
-    print(f"Transformed tables: {list(df_transformed.keys())}")
-
-    return df_transformed

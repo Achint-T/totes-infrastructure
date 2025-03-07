@@ -7,6 +7,10 @@ from moto import mock_aws
 import pandas as pd
 import io
 
+
+"""to test lambda_handler trialled using 'fake-ingestion' and 'mock-transform' 
+all working fine"""
+
 @pytest.fixture(scope="function",autouse=True)
 def aws_credentials():
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
@@ -61,23 +65,6 @@ class TestRunDimUtils:
             assert "dim_staff" in result
             assert isinstance(result["dim_staff"], pd.DataFrame)
     
-    # def test_run_dim_utils_handles_missing_file(self):
-    #     with mock_aws():
-    #         s3 = boto3.client("s3")
-    #         bucket_name = "test-bucket"
-
-    #         s3.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={
-    #             "LocationConstraint": "eu-west-2"
-    #         })
-    #         event = {
-    #             "dim_tables": {
-    #                 "staff": "missing_staff.csv", "department": "missing.csv"
-    #             }
-    #         }
-    #         result = run_dim_utils(event, bucket_name)
-    #         assert "dim_staff" not in result
-
-
 class TestRunFactUtils:
     def test_runs_right_fact_utils(self):
         with mock_aws():
@@ -113,22 +100,6 @@ class TestRunFactUtils:
             assert "fact_sales_order" in result
             assert isinstance(result["fact_sales_order"], pd.DataFrame)
 
-    # def test_run_dim_utils_handles_missing_file(self):
-    #     with mock_aws():
-    #         s3 = boto3.client("s3")
-    #         bucket_name = "test-bucket"
-
-    #         s3.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={
-    #             "LocationConstraint": "eu-west-2"
-    #         })
-    #         event = {
-    #             "fact_tables": {
-    #                 "sales_order": "missing_sales.csv"
-    #             }
-    #         }
-    #         result = run_fact_utils(event, bucket_name)
-    #         assert "fact_sales_order" not in result
-
     def test_run_dim_utils_handles_None_value_in_event(self):
         with mock_aws():
             s3 = boto3.client("s3")
@@ -139,8 +110,8 @@ class TestRunFactUtils:
             })
             event = {
                 "fact_tables": {
-                    "sales_order": None
                 }
             }
             result = run_fact_utils(event, bucket_name)
             assert "fact_sales_order" not in result
+
