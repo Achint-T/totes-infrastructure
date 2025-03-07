@@ -94,7 +94,7 @@ def lambda_handler(event,context):
         logging.error(f"writing to transformed bucket failed: {e}")
         return {"statusCode": 500, "body": f"Transform run failed: {e}"}
 
-def run_dim_utils(event, ingestion_bucket_name):
+def run_dim_utils(event, ingestion_bucket):
     """runs dim utils for each of the passed dim_tables from the event. returns transformed dataframes"""
     table_relations = {'fact_sales_order': ['sales_order'],
                 'dim_staff': ['staff','department'],
@@ -109,7 +109,7 @@ def run_dim_utils(event, ingestion_bucket_name):
     
     for table in event['dim_tables']:
         try:
-            dfs[table] = read_csv_from_s3(ingestion_bucket_name, event['dim_tables'][table])
+            dfs[table] = read_csv_from_s3(ingestion_bucket, event['dim_tables'][table])
         except Exception as e:
             logger.error(f"Failed to read {table} from S3: {e}")
             continue  
@@ -138,7 +138,7 @@ def run_dim_utils(event, ingestion_bucket_name):
 
     return transformed_dfs
 
-def run_fact_utils(event, ingestion_bucket_name):
+def run_fact_utils(event, ingestion_bucket):
     """runs transformation utils on fact-to-be-tables (e.g sales_order --> fact_sales_order)"""
     
     transformed_dfs = {} 
@@ -147,7 +147,7 @@ def run_fact_utils(event, ingestion_bucket_name):
     for table in event['fact_tables']:
         try:
             if event['fact_tables'][table]:
-                dfs[table] = read_csv_from_s3(ingestion_bucket_name, event['fact_tables'][table])
+                dfs[table] = read_csv_from_s3(ingestion_bucket, event['fact_tables'][table])
             else:
                 logger.info(f"No passed csv file for {table}")
         except:
@@ -187,4 +187,3 @@ def run_fact_utils(event, ingestion_bucket_name):
 #   }
 # }
 # lambda_handler(event,{})
-
