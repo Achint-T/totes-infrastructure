@@ -14,9 +14,7 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
           "timestamp": "sampleValue1",
           "uuid": "uniquenumber",
           "fact_tables": [
-            "sales_order",
-            "payment",
-            "transaction"
+            "sales_order"
           ],
           "dim_tables":[
             "design",
