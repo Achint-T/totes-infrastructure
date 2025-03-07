@@ -16,6 +16,7 @@ from botocore.exceptions import ClientError
 from datetime import datetime, UTC
 import logging
 import os
+import json
 
 
 """6/3/25 16:40 - Ingestion lambda will now ingest entirety of each dim-to-be-table
@@ -54,9 +55,15 @@ def lambda_handler(event,context):
 
     Context not needed for this function. Can be anything
     '"""
+    if isinstance(event, str):  
+        try:
+            event = json.loads(event)
+        except json.JSONDecodeError:
+            raise TypeError("event must be a dictionary or valid JSON string")
 
     if not isinstance(event, dict):
         raise TypeError("event must be a dictionary")
+
     if "fact_tables" not in event:
         raise ValueError("event must contain 'fact_tables'")
     if "dim_tables" not in event:
@@ -170,20 +177,20 @@ def run_fact_utils(event, ingestion_bucket):
     return transformed_dfs
 
 
-# event =     {
-#   "status_code": 200,
-#   "fact_tables": {
-#     "sales_order": "2025/03/06/22/51/sales_order.csv",
-#   },
-#   "dim_tables": {
-#     "design": "2025/03/06/22/51/design.csv",
-#     "currency": "2025/03/06/22/51/currency.csv",
-#     "staff": "2025/03/06/22/51/staff.csv",
-#     "counterparty": "2025/03/06/22/51/counterparty.csv",
-#     "address": "2025/03/06/22/51/address.csv",
-#     "department": "2025/03/06/22/51/department.csv",
-#     "transaction": "2025/03/06/22/51/transaction.csv",
-#     "payment_type": "2025/03/06/22/51/payment_type.csv"
-#   }
-# }
-# lambda_handler(event,{})
+event =     {
+  "status_code": 200,
+  "fact_tables": {
+    "sales_order": "2025/03/06/22/51/sales_order.csv",
+  },
+  "dim_tables": {
+    "design": "2025/03/06/22/51/design.csv",
+    "currency": "2025/03/06/22/51/currency.csv",
+    "staff": "2025/03/06/22/51/staff.csv",
+    "counterparty": "2025/03/06/22/51/counterparty.csv",
+    "address": "2025/03/06/22/51/address.csv",
+    "department": "2025/03/06/22/51/department.csv",
+    "transaction": "2025/03/06/22/51/transaction.csv",
+    "payment_type": "2025/03/06/22/51/payment_type.csv"
+  }
+}
+lambda_handler(event,{})
