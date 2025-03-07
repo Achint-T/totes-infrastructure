@@ -39,15 +39,15 @@ def lambda_handler(event, context):
 
         put_last_run_date(time_now)
 
-        return {"statusCode": 200, "fact_tables": fact_keys, "dim_tables" : dim_keys}
+        return {"status_code": 200, "fact_tables": fact_keys, "dim_tables" : dim_keys}
 
     except KeyError as ke:
         logging.error(f"Missing key in event: {ke}")
         #Reconsider suitable status code
-        return {"statusCode": 400, "body": f"Missing table information: {ke}"}
+        return {"status_code": 400, "body": f"Missing table information: {ke}"}
     except Exception as e:
         logging.error(f"Extraction run failed: {e}")
-        return {"statusCode": 500, "body": f"Extraction run failed: {e}"} 
+        return {"status_code": 500, "body": f"Extraction run failed: {e}"} 
     finally:
         if conn:
             close_db_connection(conn)
