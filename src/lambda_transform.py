@@ -10,14 +10,18 @@
 # general client error handling
 
 from src.transform_utils.file_utils import read_csv_from_s3, write_parquet_to_s3
+
 from src.transform_utils.fact_sales_order import util_fact_sales_order
+from src.transform_utils.fact_purchase_order import util_fact_purchase_order
+from src.transform_utils.fact_payment import util_fact_payment
+
 from src.transform_utils.dim_staff import util_dim_staff
 from src.transform_utils.dim_counterparty import util_dim_counterparty
 from src.transform_utils.dim_currency import util_dim_currency
 from src.transform_utils.dim_date import util_dim_date
 from src.transform_utils.dim_design import util_dim_design
 from src.transform_utils.dim_location import util_dim_location
-from src.transform_utils.get_latest_utils import get_latest_ingested_tables, get_new_tables
+
 import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime, UTC
@@ -57,7 +61,6 @@ def run_dim_utils(event, ingestion_bucket_name):
                 'dim_design': ['design'],
                 'dim_location': ['address']}
     
-
     transformed_dfs = {} 
     dfs = {}
     
@@ -69,8 +72,8 @@ def run_dim_utils(event, ingestion_bucket_name):
             continue  
 
     for dim_table, required_tables in table_relations.items():
-        if all(tbl in dfs for tbl in required_tables):
-            try:
+        try:
+            if all(tbl in dfs for tbl in required_tables):
                 if dim_table == 'dim_staff':
                     transformed_dfs[dim_table] = util_dim_staff(dfs['staff'], dfs['department'])
                 elif dim_table == 'dim_counterparty':
@@ -85,13 +88,43 @@ def run_dim_utils(event, ingestion_bucket_name):
                     transformed_dfs[dim_table] = util_dim_design(dfs['design'])
 
                 logger.info(f"successfully transformed {dim_table}")
-            except Exception as e:
+            else:
+                logger.info(f"could not construct {dim_table}. Missing one of {required_tables}")
+        except Exception as e:
                 logger.error(f"Error processing {dim_table}: {e}")
 
     return transformed_dfs
 
-def run_fact_utils():
-    pass
+def run_fact_utils(event, ingestion_bucket_name):
+    """runs transformation utils on fact-to-be-tables (e.g sales_order --> fact_sales_order)"""
+    
+    transformed_dfs = {} 
+    dfs = {}
+
+    for table in event['fact_tables']:
+        try:
+            if event['fact_tables'][table]:
+                dfs[table] = read_csv_from_s3(ingestion_bucket_name, event['fact_tables'][table])
+            else:
+                logger.info(f"No passed csv file for {table}")
+        except:
+            logger.error(f"Failed to read {table} from S3: {e}")
+            continue  
+
+    for df in dfs:
+        try:
+            if df == 'sales_order':
+                transformed_dfs[f'fact_{df}'] = util_fact_sales_order(dfs['sales_order'])
+            elif df == 'purchase_order':
+                transformed_dfs[f'fact_{df}'] = util_fact_purchase_order(dfs['purchase_order'])
+            elif df == 'payment':
+                transformed_dfs[f'fact_{df}'] =  util_fact_payment(dfs['payment'])
+            logger.info(f"successfully transformed {df}")
+
+        except Exception as e:
+            logger.error(f"Error processing {df}: {e}")
+
+    return transformed_dfs
 
 def lambda_handler(event,context):
     #no need to pass bucket names do env vars

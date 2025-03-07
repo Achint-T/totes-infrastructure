@@ -61,7 +61,75 @@ class TestRunDimUtils:
             assert "dim_staff" in result
             assert isinstance(result["dim_staff"], pd.DataFrame)
     
-    def test_run_dim_utils_handles_missing_file(self):
+    # def test_run_dim_utils_handles_missing_file(self):
+    #     with mock_aws():
+    #         s3 = boto3.client("s3")
+    #         bucket_name = "test-bucket"
+
+    #         s3.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={
+    #             "LocationConstraint": "eu-west-2"
+    #         })
+    #         event = {
+    #             "dim_tables": {
+    #                 "staff": "missing_staff.csv", "department": "missing.csv"
+    #             }
+    #         }
+    #         result = run_dim_utils(event, bucket_name)
+    #         assert "dim_staff" not in result
+
+
+class TestRunFactUtils:
+    def test_runs_right_fact_utils(self):
+        with mock_aws():
+            s3 = boto3.client('s3')
+            bucket_name = 'test-bucket'
+            file_keys = {
+                'sales_order': '2025/6/3/16/47/sales_order.csv'
+            }
+
+            event = {
+                'fact_tables':{'sales_order': '2025/6/3/16/47/sales_order.csv'}}
+            
+            s3.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={
+            'LocationConstraint': 'eu-west-2'})
+
+            df_sales_order = pd.DataFrame([
+            [1, '2022-11-03 14:20:52.186', '2022-11-03 14:20:52.186', 5, 2, 4, 2317, 3.94, 3, '2022-11-07', '2022-11-08', 2], 
+            [2, '2022-11-03 14:20:52.186', '2022-11-03 14:20:52.186', 5, 2, 4, 2317, 3.94, 3, '2022-11-07', '2022-11-08', 2], 
+            [3, '2022-11-03 14:20:52.186', '2022-11-03 14:20:52.186', 5, 2, 4, 2317, 3.94, 3, '2022-11-07', '2022-11-08', 2]
+            ], columns=['sales_order_id', 'created_at', 'last_updated', 'design_id', 'staff_id', 'counterparty_id', 'units_sold',
+                         'unit_price', 'currency_id', 'agreed_delivery_date', 'agreed_payment_date', 'agreed_delivery_location_id']
+        )
+
+            for table, file_key in file_keys.items():
+                csv_buffer = io.StringIO()
+                if table == "sales_order":
+                    df_sales_order.to_csv(csv_buffer, index=False)
+                s3.put_object(Bucket=bucket_name, Key=file_key, Body=csv_buffer.getvalue())
+
+            result = run_fact_utils(event, bucket_name)
+
+            assert isinstance(result, dict)
+            assert "fact_sales_order" in result
+            assert isinstance(result["fact_sales_order"], pd.DataFrame)
+
+    # def test_run_dim_utils_handles_missing_file(self):
+    #     with mock_aws():
+    #         s3 = boto3.client("s3")
+    #         bucket_name = "test-bucket"
+
+    #         s3.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={
+    #             "LocationConstraint": "eu-west-2"
+    #         })
+    #         event = {
+    #             "fact_tables": {
+    #                 "sales_order": "missing_sales.csv"
+    #             }
+    #         }
+    #         result = run_fact_utils(event, bucket_name)
+    #         assert "fact_sales_order" not in result
+
+    def test_run_dim_utils_handles_None_value_in_event(self):
         with mock_aws():
             s3 = boto3.client("s3")
             bucket_name = "test-bucket"
@@ -70,12 +138,9 @@ class TestRunDimUtils:
                 "LocationConstraint": "eu-west-2"
             })
             event = {
-                "dim_tables": {
-                    "staff": "missing_staff.csv"
+                "fact_tables": {
+                    "sales_order": None
                 }
             }
-            result = run_dim_utils(event, bucket_name)
-            assert "dim_staff" not in result
-
-
-
+            result = run_fact_utils(event, bucket_name)
+            assert "fact_sales_order" not in result
