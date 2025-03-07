@@ -13,7 +13,7 @@ from src.transform_utils.file_utils import read_csv_from_s3, write_parquet_to_s3
 from src.transform_utils.fact_sales_order import util_fact_sales_order
 from src.transform_utils.dim_staff import util_dim_staff
 from src.transform_utils.dim_counterparty import util_dim_counterparty
-# from src.transform_utils.dim_currency import util_dim_currency
+from src.transform_utils.dim_currency import util_dim_currency
 from src.transform_utils.dim_date import util_dim_date
 from src.transform_utils.dim_design import util_dim_design
 from src.transform_utils.dim_location import util_dim_location
@@ -22,20 +22,82 @@ import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime, UTC
 import logging
+import os
+import botocore
+
+"""6/3/25 16:40 - ingestion lambda will now ingest entirety of each dim-to-be-table
+every run, but only partial ingestion of sales_order and other fact-to-be-tables 
+(ie only the updated rows of the table will be in the csv).
+
+ingestion lambda will return a dictionary in the form:
+
+ {'fact_tables':{'sales_order': '2025/6/3/16/47/sales_order.csv',...}, 
+  'dim_tables':{'staff': '2025/6/3/16/47/staff', 'department': '2025/6/3/16/47/department', ...}}
+
+  the transform lambda will take this as its EVENT and run transformation utils on all the
+   dim tables, and on fact-to-be-tables e.g sales_order IF there are updates. (if there are
+   no updates the dictionary value of the table will be None) """
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 s3_client = boto3.client('s3')
+ingestion_bucket = os.environ["INGESTION_BUCKET_NAME"]
+transformed_bucket = os.environ["TRANSFORMED_BUCKET_NAME"]
+# export INGESTION_BUCKET_NAME="fake-ingestion"
+# export TRANSFORMED_BUCKET_NAME="mock-transformed"
+
+def run_dim_utils(event, ingestion_bucket_name):
+    """runs dim utils for each of the passed dim_tables from the event. returns transformed dataframes"""
+    table_relations = {'fact_sales_order': ['sales_order'],
+                'dim_staff': ['staff','department'],
+                'dim_counterparty': ['counterparty', 'address'],
+                'dim_currency': ['currency'],
+                'dim_date': ['date'],
+                'dim_design': ['design'],
+                'dim_location': ['address']}
+    
+
+    transformed_dfs = {} 
+    dfs = {}
+    
+    for table in event['dim_tables']:
+        try:
+            dfs[table] = read_csv_from_s3(ingestion_bucket_name, event['dim_tables'][table])
+        except Exception as e:
+            logger.error(f"Failed to read {table} from S3: {e}")
+            continue  
+
+    for dim_table, required_tables in table_relations.items():
+        if all(tbl in dfs for tbl in required_tables):
+            try:
+                if dim_table == 'dim_staff':
+                    transformed_dfs[dim_table] = util_dim_staff(dfs['staff'], dfs['department'])
+                elif dim_table == 'dim_counterparty':
+                    transformed_dfs[dim_table] = util_dim_counterparty(dfs['counterparty'], dfs['address'])
+                elif dim_table == 'dim_currency':
+                    transformed_dfs[dim_table] = util_dim_currency(dfs['currency'])
+                elif dim_table == 'dim_location':
+                    transformed_dfs[dim_table] = util_dim_location(dfs['address'])
+                elif dim_table == 'dim_date':
+                    transformed_dfs[dim_table] = util_dim_date(dfs['date'])
+                elif dim_table == 'dim_design':
+                    transformed_dfs[dim_table] = util_dim_design(dfs['design'])
+
+                logger.info(f"successfully transformed {dim_table}")
+            except Exception as e:
+                logger.error(f"Error processing {dim_table}: {e}")
+
+    return transformed_dfs
+
+def run_fact_utils():
+    pass
 
 def lambda_handler(event,context):
     #no need to pass bucket names do env vars
     """Event example:
-    {
-        "ingestion_bucket": "fake-ingested",
-        "transformed_bucket": "mock-transformed",
-        "tables_to_check": ["sales_order", "staff", "currency", "design", "counterparty", "date", "address", "department"]
-    } 
+     {'fact_tables':{'sales_order': '2025/6/3/16/47/sales_order.csv',...}, 
+  'dim_tables':{'staff': '2025/6/3/16/47/staff', 'department': '2025/6/3/16/47/department', ...}}
     """
     ingestion_bucket = event.get("ingestion_bucket")
     transformed_bucket = event.get("transformed_bucket")
@@ -73,14 +135,6 @@ def lambda_handler(event,context):
 def transform_where_new_tables(ingestion_bucket, transformed_bucket):
     """runs relevant transformation util (returning pandas dataframe) where a star schema table has new dependency tables"""
 
-    table_relations = {'fact_sales_order': ['sales_order'],
-                    'dim_staff': ['staff','department'],
-                    'dim_counterparty': ['counterparty', 'address'],
-                    'dim_currency': ['sales_order','currency'],
-                    'dim_date': ['date'],
-                    'dim_design': ['design'],
-                    'dim_location': ['address']
-    }
     #determine which star schema tables need to be updated (have new dependency table versions):
 
     new_tables = get_new_tables('mourne-s3-totes-sys-ingestion-bucket','mock-transformed')
