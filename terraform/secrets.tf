@@ -1,5 +1,6 @@
 resource "aws_secretsmanager_secret" "database_credentials" {
     name = "database_credentials"
+    recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "database_credentials_version" {
@@ -9,6 +10,7 @@ resource "aws_secretsmanager_secret_version" "database_credentials_version" {
 
 resource "aws_secretsmanager_secret" "warehouse_credentials" {
     name = "warehouse_credentials"
+    recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "warehouse_credentials_version" {
