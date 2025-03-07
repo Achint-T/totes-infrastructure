@@ -39,7 +39,7 @@ def lambda_handler(event, context):
 
         put_last_run_date(time_now)
 
-        return {"statusCode": 200, "body": "Extraction run successfully"}
+        return {"statusCode": 200, "fact_tables": fact_keys, "dim_tables" : dim_keys}
 
     except KeyError as ke:
         logging.error(f"Missing key in event: {ke}")
