@@ -64,16 +64,16 @@ def get_last_run_date(secret_client = secret_client):
 def put_last_run_date(timeobject, secret_client = secret_client):
     return put_last_upload_date(timeobject, secret_client)
 
-def save_data_to_s3(conn, tables_to_ingest, timestamp, last_date = "2020-01-01 00:00:00", s3_client=s3_client) -> list:
-    key_list = []
+def save_data_to_s3(conn, tables_to_ingest, timestamp, last_date = "2020-01-01 00:00:00", s3_client=s3_client) -> dict:
+    key_dict = {}
     for table in tables_to_ingest:
         data = get_recent_additions(conn, tablename=table, updatedate=last_date, time_now=timestamp["secret"])
         key = timestamp["filepath"] + '/' + table + '.csv'
         if data["body"]:#check if there is actual data 
             data_to_csv(data, table_name=table)
             s3_client.upload_file(f"/tmp/{table}.csv", bucket_name, key)
-            key_list.append(key)
-    return key_list
+            key_dict[table]=key
+    return key_dict
 
 
 #lambda_handler(event={"tables":["sales_order", "design"]},context={})
