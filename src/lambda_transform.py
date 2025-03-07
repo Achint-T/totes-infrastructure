@@ -1,15 +1,15 @@
-from src.transform_utils.file_utils import read_csv_from_s3, write_parquet_to_s3
+from transform_utils.file_utils import read_csv_from_s3, write_parquet_to_s3
 
-from src.transform_utils.fact_sales_order import util_fact_sales_order
-from src.transform_utils.fact_purchase_order import util_fact_purchase_order
-from src.transform_utils.fact_payment import util_fact_payment
+from transform_utils.fact_sales_order import util_fact_sales_order
+from transform_utils.fact_purchase_order import util_fact_purchase_order
+from transform_utils.fact_payment import util_fact_payment
 
-from src.transform_utils.dim_staff import util_dim_staff
-from src.transform_utils.dim_counterparty import util_dim_counterparty
-from src.transform_utils.dim_currency import util_dim_currency
-from src.transform_utils.dim_date import util_dim_date
-from src.transform_utils.dim_design import util_dim_design
-from src.transform_utils.dim_location import util_dim_location
+from transform_utils.dim_staff import util_dim_staff
+from transform_utils.dim_counterparty import util_dim_counterparty
+from transform_utils.dim_currency import util_dim_currency
+from transform_utils.dim_date import util_dim_date
+from transform_utils.dim_design import util_dim_design
+from transform_utils.dim_location import util_dim_location
 
 import boto3
 from botocore.exceptions import ClientError
@@ -150,7 +150,7 @@ def run_fact_utils(event, ingestion_bucket):
                 dfs[table] = read_csv_from_s3(ingestion_bucket, event['fact_tables'][table])
             else:
                 logger.info(f"No passed csv file for {table}")
-        except:
+        except Exception as e:
             logger.error(f"Failed to read {table} from S3: {e}")
             continue  
 
