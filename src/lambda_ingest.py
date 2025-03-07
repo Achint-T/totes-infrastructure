@@ -72,7 +72,7 @@ def save_data_to_s3(conn, tables_to_ingest, timestamp, last_date = "2020-01-01 0
         if data["body"]:#check if there is actual data 
             data_to_csv(data, table_name=table)
             s3_client.upload_file(f"/tmp/{table}.csv", bucket_name, key)
-        key_list.append(key)
+            key_list.append(key)
     return key_list
 
 
