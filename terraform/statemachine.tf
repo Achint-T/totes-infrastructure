@@ -47,10 +47,7 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
       "Resource": "arn:aws:states:::lambda:invoke",
       "OutputPath": "$.Payload",
       "Parameters": {
-        "Payload": {
-          "timestamp": "sampleValue1",
-          "uuid": "uniquenumber"
-        },
+        "Payload.$": "$",
         "FunctionName": "transform_handler"
       },
       "Retry": [
@@ -71,11 +68,8 @@ resource "aws_sfn_state_machine" "pipeline_machine" {
       "Resource": "arn:aws:states:::lambda:invoke",
       "OutputPath": "$.Payload",
       "Parameters": {
-        "Payload": {
-          "timestamp": "sampleValue1",
-          "uuid": "uniquenumber"
-        },
-        "FunctionName": "load_lambda" #update me
+        "Payload.$": "$"
+        "FunctionName": "load_handler"
       },
       "Retry": [
         {
