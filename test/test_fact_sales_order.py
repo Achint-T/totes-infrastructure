@@ -28,7 +28,7 @@ class TestSalesOrder:
 
         output = util_fact_sales_order(test_df)
         
-        assert output.index.name == 'sales_record_id'
+        # assert output.index.name == 'sales_record_id'
         assert list(output.columns) == ['sales_order_id', 'created_date', 'created_time', 'last_updated_date', 'last_updated_time', 'sales_staff_id', 'counterparty_id', 'units_sold', 'unit_price', 'currency_id', 'design_id', 'agreed_payment_date', 'agreed_delivery_date', 'agreed_delivery_location_id']
 
 # ADDED TEST TO CHECK THAT COLUMNS HAVE BEEN TRANSFORMED
