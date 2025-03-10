@@ -55,13 +55,13 @@ def lambda_handler(event,context):
 
     Context not needed for this function. Can be anything
     '"""
-    logger.info(f"Received event: {event}")
-    if not isinstance(event, dict):
-        raise TypeError("event must be a dictionary")
-    if "fact_tables" not in event:
-        raise ValueError('event must contain "fact_tables"')
-    if "dim_tables" not in event:
-        raise ValueError('event must contain "dim_tables"')
+    # logger.info(f"Received event: {event}")
+    # if not isinstance(event, dict):
+    #     raise TypeError("event must be a dictionary")
+    # if "fact_tables" not in event:
+    #     raise ValueError('event must contain "fact_tables"')
+    # if "dim_tables" not in event:
+    #     raise ValueError('event must contain "dim_tables"')
 
     try:
         dim_table_dfs = run_dim_utils(event, ingestion_bucket)
@@ -90,7 +90,9 @@ def lambda_handler(event,context):
             "fact_tables": fact_tables,
             "dim_tables": dim_tables
             }
-
+    except KeyError as ke:
+        logging.error(f"missing key in event: {ke}")
+        return {"status_code": 400, "body": f"Missing table information: {ke}"}
     except Exception as e:
         logging.error(f"writing to transformed bucket failed: {e}")
         return {"statusCode": 500, "body": f"Transform run failed: {e}"}
