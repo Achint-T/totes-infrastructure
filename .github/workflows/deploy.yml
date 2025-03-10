@@ -11,7 +11,6 @@ on:
 jobs:
   run-tests:
     name: run-tests
-    if: github.event_name == 'pull'
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout and Clone Repo 
@@ -29,6 +28,7 @@ jobs:
         run: make dev-setup
 
       - name: Run All Checks
+        if: github.event_name == 'pull'
         run: make run-checks
 
   deploy-terraform:
