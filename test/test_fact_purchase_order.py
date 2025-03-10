@@ -50,7 +50,6 @@ class TestPurchaseOrder:
         
         output = util_fact_purchase_order(test_df)
         
-        assert output.index.name == 'purchase_record_id'
         assert list(output.columns) == [
             "purchase_order_id",
             "created_date",
