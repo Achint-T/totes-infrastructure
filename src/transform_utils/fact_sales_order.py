@@ -63,6 +63,6 @@ def util_fact_sales_order(df_sales_order):
     ).dt.date
     df_fact_sales_order["agreed_delivery_location_id"] = df_sales_order["agreed_delivery_location_id"]
 
-    df_fact_sales_order.index.name = "sales_record_id"
+    # df_fact_sales_order.index.name = "sales_record_id"
 
     return df_fact_sales_order
