@@ -28,7 +28,6 @@ jobs:
         run: make dev-setup
 
       - name: Run All Checks
-        if: github.event_name == 'pull'
         run: make run-checks
 
   deploy-terraform:

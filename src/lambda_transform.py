@@ -118,7 +118,7 @@ def run_dim_utils(event, ingestion_bucket):
             logger.error(f"Failed to read {table} from S3: {e}")
             continue  
 
-    transformed_dfs[dim_table] = util_dim_date('2022-01-01', '2025-12-31')
+    transformed_dfs['dim_date'] = util_dim_date('2022-01-01', '2025-12-31')
     for dim_table, required_tables in table_relations.items():
         try:
             if all(tbl in dfs for tbl in required_tables):
