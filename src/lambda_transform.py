@@ -27,7 +27,7 @@ Ingestion lambda will return a dictionary in the form:
 
 {
 "status_code": 200,
-'fact_tables':{'sales_order': '2025/6/3/16/47/sales_order.csv',...}, 
+"fact_tables':{'sales_order': '2025/6/3/16/47/sales_order.csv',...}, 
 'dim_tables':{'staff': '2025/6/3/16/47/staff', 'department': '2025/6/3/16/47/department', ...}
 }
 
@@ -104,16 +104,16 @@ def run_dim_utils(event, ingestion_bucket):
                 'dim_staff': ['staff','department'],
                 'dim_counterparty': ['counterparty', 'address'],
                 'dim_currency': ['currency'],
-                'dim_date': ['date'],
+                'dim_date': [],
                 'dim_design': ['design'],
                 'dim_location': ['address']}
     
     transformed_dfs = {} 
     dfs = {}
     
-    for table in event['dim_tables']:
+    for table in event["dim_tables"]:
         try:
-            dfs[table] = read_csv_from_s3(ingestion_bucket, event['dim_tables'][table])
+            dfs[table] = read_csv_from_s3(ingestion_bucket, event["dim_tables"][table])
         except Exception as e:
             logger.error(f"Failed to read {table} from S3: {e}")
             continue  
@@ -130,13 +130,13 @@ def run_dim_utils(event, ingestion_bucket):
                 elif dim_table == 'dim_location':
                     transformed_dfs[dim_table] = util_dim_location(dfs['address'])
                 elif dim_table == 'dim_date':
-                    transformed_dfs[dim_table] = util_dim_date(dfs['date'])
+                    transformed_dfs[dim_table] = util_dim_date()
                 elif dim_table == 'dim_design':
                     transformed_dfs[dim_table] = util_dim_design(dfs['design'])
 
                 logger.info(f"successfully transformed {dim_table}")
-            else:
-                logger.info(f"could not construct {dim_table}. Missing one of {required_tables}")
+            # else:
+            #     logger.info(f"could not construct {dim_table}. Missing one of {required_tables}")
         except Exception as e:
                 logger.error(f"Error processing {dim_table}: {e}")
 
