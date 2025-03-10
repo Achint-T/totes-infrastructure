@@ -10,6 +10,8 @@ from transform_utils.dim_currency import util_dim_currency
 from transform_utils.dim_date import util_dim_date
 from transform_utils.dim_design import util_dim_design
 from transform_utils.dim_location import util_dim_location
+from transform_utils.dim_payment_type import util_dim_payment_type
+from transform_utils.dim_transaction import util_dim_transaction
 
 import boto3
 from botocore.exceptions import ClientError
@@ -106,7 +108,9 @@ def run_dim_utils(event, ingestion_bucket):
                 'dim_currency': ['currency'],
                 'dim_date': [],
                 'dim_design': ['design'],
-                'dim_location': ['address']}
+                'dim_location': ['address'],
+                'dim_payment_type': ['payment_type'],
+                'dim_transaction': ['transaction']}
     
     transformed_dfs = {} 
     dfs = {}
@@ -132,6 +136,10 @@ def run_dim_utils(event, ingestion_bucket):
                     transformed_dfs[dim_table] = util_dim_location(dfs['address'])
                 elif dim_table == 'dim_design':
                     transformed_dfs[dim_table] = util_dim_design(dfs['design'])
+                elif dim_table == 'dim_payment_type':
+                    transformed_dfs[dim_table] = util_dim_payment_type(dfs['payment_type'])
+                elif dim_table == 'dim_transaction':
+                    transformed_dfs[dim_table] = util_dim_transaction(dfs['transaction'])
 
                 logger.info(f"successfully transformed {dim_table}")
             # else:
