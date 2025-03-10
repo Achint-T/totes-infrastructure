@@ -49,6 +49,4 @@ def util_fact_purchase_order(df_purchase_order):
     for column in required_columns[8:]:
         df_fact_purchase_order[column] = df_purchase_order[column]
 
-    df_fact_purchase_order.index.name = "purchase_record_id"
-
     return df_fact_purchase_order
