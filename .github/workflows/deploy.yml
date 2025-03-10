@@ -11,6 +11,7 @@ on:
 jobs:
   run-tests:
     name: run-tests
+    if: github.event_name == 'pull'
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout and Clone Repo 
