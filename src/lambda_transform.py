@@ -104,7 +104,7 @@ def run_dim_utils(event, ingestion_bucket):
                 'dim_staff': ['staff','department'],
                 'dim_counterparty': ['counterparty', 'address'],
                 'dim_currency': ['currency'],
-                'dim_date': ['date'],
+                'dim_date': [],
                 'dim_design': ['design'],
                 'dim_location': ['address']}
     
@@ -130,13 +130,13 @@ def run_dim_utils(event, ingestion_bucket):
                 elif dim_table == 'dim_location':
                     transformed_dfs[dim_table] = util_dim_location(dfs['address'])
                 elif dim_table == 'dim_date':
-                    transformed_dfs[dim_table] = util_dim_date(dfs['date'])
+                    transformed_dfs[dim_table] = util_dim_date()
                 elif dim_table == 'dim_design':
                     transformed_dfs[dim_table] = util_dim_design(dfs['design'])
 
                 logger.info(f"successfully transformed {dim_table}")
-            else:
-                logger.info(f"could not construct {dim_table}. Missing one of {required_tables}")
+            # else:
+            #     logger.info(f"could not construct {dim_table}. Missing one of {required_tables}")
         except Exception as e:
                 logger.error(f"Error processing {dim_table}: {e}")
 
