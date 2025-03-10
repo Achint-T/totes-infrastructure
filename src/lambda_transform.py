@@ -62,6 +62,7 @@ def lambda_handler(event,context):
     #     raise ValueError('event must contain "fact_tables"')
     # if "dim_tables" not in event:
     #     raise ValueError('event must contain "dim_tables"')
+    #
 
     try:
         dim_table_dfs = run_dim_utils(event, ingestion_bucket)
