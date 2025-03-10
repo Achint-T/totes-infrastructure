@@ -55,9 +55,9 @@ def lambda_handler(event,context):
 
     Context not needed for this function. Can be anything
     '"""
-    # logger.info(f"Received event: {event}")
-    # if not isinstance(event, dict):
-    #     raise TypeError("event must be a dictionary")
+    logger.info(f"Received event: {event}")
+    if not isinstance(event, dict):
+        raise TypeError("event must be a dictionary")
     # if "fact_tables" not in event:
     #     raise ValueError('event must contain "fact_tables"')
     # if "dim_tables" not in event:
@@ -130,7 +130,7 @@ def run_dim_utils(event, ingestion_bucket):
                 elif dim_table == 'dim_location':
                     transformed_dfs[dim_table] = util_dim_location(dfs['address'])
                 elif dim_table == 'dim_date':
-                    transformed_dfs[dim_table] = util_dim_date()
+                    transformed_dfs[dim_table] = util_dim_date('2022-01-01', '2025-12-31')
                 elif dim_table == 'dim_design':
                     transformed_dfs[dim_table] = util_dim_design(dfs['design'])
 
