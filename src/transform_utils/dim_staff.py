@@ -14,9 +14,9 @@ def util_dim_staff(df_staff, df_department):
     #instead of only returning messages (apart from for df_fact_sales_order where i couldn't get this to work)
     
     if df_staff.empty:
-        raise ValueError("The source dataframe for df_staff is empty")
+        return "The source dataframe for df_staff is empty"
     if df_department.empty:
-        raise ValueError("The source dataframe for df_department is empty")
+        return "The source dataframe for df_department is empty"
 
     required_columns_staff = {"staff_id", "first_name", "last_name", "email_address", "department_id"}
     required_columns_department = {"department_id", "department_name", "location"}
@@ -26,9 +26,9 @@ def util_dim_staff(df_staff, df_department):
 
     
     if missing_staff:
-        raise KeyError(f"Missing columns in df_staff: {', '.join(missing_staff)}")
+        return f"Missing columns in df_staff: {', '.join(missing_staff)}"
     if missing_department:
-        raise KeyError(f"Missing columns in df_department: {', '.join(missing_department)}")
+        return f"Missing columns in df_department: {', '.join(missing_department)}"
     
     #creating df_dim_staff:
     df_merged = df_staff.merge(df_department, on='department_id', how='left')
