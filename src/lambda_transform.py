@@ -1,21 +1,22 @@
-from src.transform_utils.file_utils import read_csv_from_s3, write_parquet_to_s3
+from transform_utils.file_utils import read_csv_from_s3, write_parquet_to_s3
 
-from src.transform_utils.fact_sales_order import util_fact_sales_order
-from src.transform_utils.fact_purchase_order import util_fact_purchase_order
-from src.transform_utils.fact_payment import util_fact_payment
+from transform_utils.fact_sales_order import util_fact_sales_order
+from transform_utils.fact_purchase_order import util_fact_purchase_order
+from transform_utils.fact_payment import util_fact_payment
 
-from src.transform_utils.dim_staff import util_dim_staff
-from src.transform_utils.dim_counterparty import util_dim_counterparty
-from src.transform_utils.dim_currency import util_dim_currency
-from src.transform_utils.dim_date import util_dim_date
-from src.transform_utils.dim_design import util_dim_design
-from src.transform_utils.dim_location import util_dim_location
+from transform_utils.dim_staff import util_dim_staff
+from transform_utils.dim_counterparty import util_dim_counterparty
+from transform_utils.dim_currency import util_dim_currency
+from transform_utils.dim_date import util_dim_date
+from transform_utils.dim_design import util_dim_design
+from transform_utils.dim_location import util_dim_location
 
 import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime, UTC
 import logging
 import os
+import json
 
 
 """6/3/25 16:40 - Ingestion lambda will now ingest entirety of each dim-to-be-table
@@ -54,13 +55,13 @@ def lambda_handler(event,context):
 
     Context not needed for this function. Can be anything
     '"""
-
+    logger.info(f"Received event: {event}")
     if not isinstance(event, dict):
         raise TypeError("event must be a dictionary")
     if "fact_tables" not in event:
-        raise ValueError("event must contain 'fact_tables'")
+        raise ValueError('event must contain "fact_tables"')
     if "dim_tables" not in event:
-        raise ValueError("event must contain 'dim_tables'")
+        raise ValueError('event must contain "dim_tables"')
 
     try:
         dim_table_dfs = run_dim_utils(event, ingestion_bucket)
@@ -150,7 +151,7 @@ def run_fact_utils(event, ingestion_bucket):
                 dfs[table] = read_csv_from_s3(ingestion_bucket, event['fact_tables'][table])
             else:
                 logger.info(f"No passed csv file for {table}")
-        except:
+        except Exception as e:
             logger.error(f"Failed to read {table} from S3: {e}")
             continue  
 
@@ -173,7 +174,7 @@ def run_fact_utils(event, ingestion_bucket):
 # event =     {
 #   "status_code": 200,
 #   "fact_tables": {
-#     "sales_order": "2025/03/06/22/51/sales_order.csv",
+#     "sales_order": "2025/03/06/22/51/sales_order.csv"
 #   },
 #   "dim_tables": {
 #     "design": "2025/03/06/22/51/design.csv",
