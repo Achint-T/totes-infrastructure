@@ -48,11 +48,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Export Terraform Secret Variables
-        run: |
-          echo "TF_VAR_database_credentials_value='${{ secrets.DB_CREDENTIALS }}'" >> $GITHUB_ENV
-          echo "TF_VAR_warehouse_credentials_value='${{ secrets.WR_CREDENTIALS }}'" >> $GITHUB_ENV
-
       - name: terraform init
         working-directory: terraform
         run: terraform init
