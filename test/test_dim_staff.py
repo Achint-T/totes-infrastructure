@@ -51,8 +51,8 @@ class TestDimStaffErrorHandling:
             [101, "Purchasing", "Manchester"]
         ], columns=["department_id", "department_name", "location"])
 
-        with pytest.raises(ValueError, match="The source dataframe for df_staff is empty"):
-            util_dim_staff(df_staff, df_department)
+        output = util_dim_staff(df_staff, df_department)
+        assert output == "The source dataframe for df_staff is empty"
 
     def test_empty_dataframe_department(self):
         df_staff = pd.DataFrame([
@@ -60,8 +60,8 @@ class TestDimStaffErrorHandling:
         ], columns=["first_name", "last_name", "email_address", "department_id"])
         df_department = pd.DataFrame() 
 
-        with pytest.raises(ValueError, match="The source dataframe for df_department is empty"):
-            util_dim_staff(df_staff, df_department)
+        output = util_dim_staff(df_staff, df_department)
+        assert output == "The source dataframe for df_department is empty"
 
     def test_missing_columns_staff(self):
         df_staff = pd.DataFrame([  # missing email_address
@@ -71,8 +71,8 @@ class TestDimStaffErrorHandling:
             [101, "Purchasing", "Manchester"]
         ], columns=["department_id", "department_name", "location"])
 
-        with pytest.raises(KeyError, match="Missing columns in df_staff: email_address"):
-            util_dim_staff(df_staff, df_department)
+        output = util_dim_staff(df_staff, df_department)
+        assert output == "Missing columns in df_staff: email_address"
 
     def test_missing_columns_department(self):
         df_staff = pd.DataFrame([
@@ -81,6 +81,6 @@ class TestDimStaffErrorHandling:
         df_department = pd.DataFrame([  # missing location
             [101, "Purchasing"]
         ], columns=["department_id", "department_name"])
-
-        with pytest.raises(KeyError, match="Missing columns in df_department: location"):
-            util_dim_staff( df_staff, df_department)
+        
+        output = util_dim_staff(df_staff, df_department)
+        assert output == "Missing columns in df_department: location"

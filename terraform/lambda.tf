@@ -89,9 +89,10 @@ resource "null_resource" "prepare_layer_files_transform" {
     helper_file_hash_7 = filebase64sha256("${path.module}/../src/transform_utils/dim_staff.py")
     helper_file_hash_8 = filebase64sha256("${path.module}/../src/transform_utils/fact_sales_order.py")
     helper_file_hash_9 = filebase64sha256("${path.module}/../src/transform_utils/file_utils.py")
-    helper_file_hash_9 = filebase64sha256("${path.module}/../src/transform_utils/fact_payment.py")
-    helper_file_hash_9 = filebase64sha256("${path.module}/../src/transform_utils/dim_transaction.py")
-    helper_file_hash_9 = filebase64sha256("${path.module}/../src/transform_utils/dim_payment_type.py")
+    helper_file_hash_10 = filebase64sha256("${path.module}/../src/transform_utils/fact_payment.py")
+    helper_file_hash_11 = filebase64sha256("${path.module}/../src/transform_utils/dim_transaction.py")
+    helper_file_hash_12 = filebase64sha256("${path.module}/../src/transform_utils/dim_payment_type.py")
+    helper_file_hash_13 = filebase64sha256("${path.module}/../src/transform_utils/fact_purchase_order.py")
     
 }
 
@@ -109,9 +110,10 @@ resource "null_resource" "prepare_layer_files_transform" {
       cp "${path.module}/../src/transform_utils/dim_staff.py" "$LAYER_PATH/transform_utils/dim_staff.py"
       cp "${path.module}/../src/transform_utils/fact_sales_order.py" "$LAYER_PATH/transform_utils/fact_sales_order.py"
       cp "${path.module}/../src/transform_utils/file_utils.py" "$LAYER_PATH/transform_utils/file_utils.py"
-      cp "${path.module}/../src/transform_utils/file_utils.py" "$LAYER_PATH/transform_utils/fact_payment.py"
-      cp "${path.module}/../src/transform_utils/file_utils.py" "$LAYER_PATH/transform_utils/dim_transaction.py"
-      cp "${path.module}/../src/transform_utils/file_utils.py" "$LAYER_PATH/transform_utils/dim_payment_type.py"
+      cp "${path.module}/../src/transform_utils/fact_payment.py" "$LAYER_PATH/transform_utils/fact_payment.py"
+      cp "${path.module}/../src/transform_utils/dim_transaction.py" "$LAYER_PATH/transform_utils/dim_transaction.py"
+      cp "${path.module}/../src/transform_utils/dim_payment_type.py" "$LAYER_PATH/transform_utils/dim_payment_type.py"
+      cp "${path.module}/../src/transform_utils/fact_purchase_order.py" "$LAYER_PATH/transform_utils/fact_purchase_order.py"
 
     EOT
   }
@@ -162,6 +164,14 @@ resource "aws_lambda_function" "transform_handler" {
   handler          = "lambda_transform.lambda_handler"
   runtime          = "python3.12"
   timeout          = 60
+
+
+environment {
+    variables = {
+      INGESTION_BUCKET_NAME = data.aws_s3_bucket.s3_ingestion_bucket.bucket
+      TRANSFORMED_BUCKET_NAME = data.aws_s3_bucket.s3_transform_bucket.bucket
+    }
+  }
 }
 
 # Load Lambda
@@ -170,7 +180,7 @@ resource "null_resource" "prepare_layer_files_load" {
   triggers = {
     
     helper_file_hash_1 = filebase64sha256("${path.module}/../src/load_utils/read_parquet.py")
-    helper_file_hash_2 = filebase64sha256("${path.module}/../src/load_utils/insert_dataframe_to_dw.py")
+    helper_file_hash_2 = filebase64sha256("${path.module}/../src/load_utils/write_dataframe_to_dw.py")
     helper_file_hash_2 = filebase64sha256("${path.module}/../src/helpers.py")
     
 }
@@ -182,7 +192,7 @@ resource "null_resource" "prepare_layer_files_load" {
       mkdir -p "$LAYER_PATH/load_utils"
       cp "${path.module}/../src/helpers.py" "$LAYER_PATH/helpers.py"
       cp "${path.module}/../src/load_utils/read_parquet.py" "$LAYER_PATH/load_utils/read_parquet.py"
-      cp "${path.module}/../src/load_utils/insert_dataframe_to_dw.py" "$LAYER_PATH/load_utils/insert_dataframe_to_dw.py"
+      cp "${path.module}/../src/load_utils/write_dataframe_to_dw.py" "$LAYER_PATH/load_utils/write_dataframe_to_dw.py"
 
     EOT
   }
