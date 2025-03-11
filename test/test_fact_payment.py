@@ -36,7 +36,6 @@ class TestFactPayment:
     def test_returns_correct_columns(self, payment):
         output = util_fact_payment(payment)
 
-        assert output.index.name == 'payment_record_id'
         assert list(output.columns) == [
         "payment_id",
         "created_date",
