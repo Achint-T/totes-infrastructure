@@ -95,7 +95,7 @@ export PYTHONPATH=$(pwd)
 
 This project can be modified to ingest data from a range of source databases, and transform and output this data into a Data Warehouse. 
 
-It is suitable for use cases where the operational data is regularly updated and will need to be refresed in the data warehouse every 30 min. 
+It is suitable for use cases where the operational data is regularly updated and will need to be refreshed in the data warehouse every 30 min. 
 
 The key files to be modified are:
 * src/transform_utils: Each python file corresponds to a table in the data warehouse star schema. These files can be modified to fit different source tables and star schemas. 
@@ -134,7 +134,7 @@ The key files to be modified are:
 
 ### Additional elements 
 
-* **Terraform**: Terraform is used to manage the S3 buckets, lambdas, cloudwatch and associated permissions. 
+* **Terraform**: Terraform is used to manage the S3 buckets, lambdas, state machine, cloudwatch and associated permissions. 
 
 * **CI/CD**: A CI/CD pipeline is set up to automatically run security and unit tests and execute the terraform actions on code that is pushed to github. 
 
