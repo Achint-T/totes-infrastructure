@@ -1,11 +1,14 @@
 import pandas as pd
 import pg8000
+import pg8000.native
 from src.load_utils.read_parquet import read_parquet_from_s3
 from typing import Dict
 import boto3
+from sqlalchemy import create_engine, URL
+import os
 
 def write_dataframe_to_db(
-    dataframe: pd.DataFrame, conn: pg8000.Connection, table_name: str, insert_mode: bool = True
+    dataframe: pd.DataFrame, conn: pg8000.native.Connection, table_name: str, insert_mode: bool = True
 ) -> bool:
     """Writes data from a Pandas DataFrame into a PostgreSQL table, with options for insert or replace.
 
@@ -42,34 +45,29 @@ def write_dataframe_to_db(
         raise ValueError("table_name cannot be empty")
 
     try:
+        url = URL.create(drivername="postgresql+pg8000",
+                         username=os.environ["USERNAME"],
+                         password= os.environ["PASSWORD"], 
+                         host=os.environ["HOST"], 
+                         database = "postgres",
+                         port=os.environ["PORT"])
+        print(url)
+        engine = create_engine(url)
+
         if not insert_mode:  # Replace mode when insert_mode is False
-            conn.run(f"DROP TABLE IF EXISTS {table_name}")
-
-            col_defs = []
-            for col_name, dtype in dataframe.dtypes.items():
-                if pd.api.types.is_integer_dtype(dtype):
-                    col_type = "INTEGER"
-                elif pd.api.types.is_float_dtype(dtype):
-                    col_type = "FLOAT"
-                elif pd.api.types.is_datetime64_any_dtype(dtype):
-                    col_type = "TIMESTAMP"
-                else:
-                    col_type = "TEXT"
-                col_defs.append(f"{col_name} {col_type}")
-            create_table_sql = f"CREATE TABLE {table_name} ({','.join(col_defs)})"
-            conn.run(create_table_sql)
-
-        cols_str = ",".join(dataframe.columns)
-        placeholders_str = ",".join(["%s"] * len(dataframe.columns))
-        sql = f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders_str})"
-        conn.run(sql, dataframe.values.tolist())
-
+            conn.run(f"DELETE FROM {table_name}")
+            dataframe.to_sql(table_name, con = engine, if_exists="append", method= "multi", index= False)
+        else:
+            dataframe[0:700].to_sql(table_name, con = engine, if_exists="append",method="multi", index=False)
         return True
+    except Exception as e:
+        print("exception")
+        raise Exception(str(e))
     except pg8000.Error as db_error:
         raise pg8000.Error(str(db_error)) from db_error
     
 
-def process_fact_tables(fact_tables: Dict[str, str], s3_client: boto3.client, db_conn: pg8000.Connection) -> None:
+def process_fact_tables(fact_tables: Dict[str, str], s3_client: boto3.client, db_conn: pg8000.native.Connection) -> None:
     """Processes fact tables by loading data from S3 and inserting into the data warehouse.
 
     For each fact table, this function reads the corresponding parquet file from S3
@@ -92,7 +90,7 @@ def process_fact_tables(fact_tables: Dict[str, str], s3_client: boto3.client, db
     # if not isinstance(s3_client, boto3.client):
     #     print(type(s3_client))
     #     raise TypeError("s3_client must be a boto3 client")
-    if not isinstance(db_conn, pg8000.Connection):
+    if not isinstance(db_conn, pg8000.native.Connection):
         raise TypeError("db_conn must be a pg8000 Connection")
 
     if not fact_tables:
@@ -106,7 +104,7 @@ def process_fact_tables(fact_tables: Dict[str, str], s3_client: boto3.client, db
             raise Exception(f"Error processing fact table '{table_name}': {str(e)}") from e
 
 
-def process_dim_tables(dim_tables: Dict[str, str], s3_client: boto3.client, db_conn: pg8000.Connection) -> None:
+def process_dim_tables(dim_tables: Dict[str, str], s3_client: boto3.client, db_conn: pg8000.native.Connection) -> None:
     """Processes dimension tables by loading data from S3 and replacing data in the data warehouse.
 
     For each dimension table, this function reads the corresponding parquet file from S3
@@ -128,7 +126,7 @@ def process_dim_tables(dim_tables: Dict[str, str], s3_client: boto3.client, db_c
         raise TypeError("dim_tables must be a dictionary")
     # if not isinstance(s3_client, boto3.client):
     #     raise TypeError("s3_client must be a boto3 client")
-    if not isinstance(db_conn, pg8000.Connection):
+    if not isinstance(db_conn, pg8000.native.Connection):
         raise TypeError("db_conn must be a pg8000 Connection")
 
     if not dim_tables:

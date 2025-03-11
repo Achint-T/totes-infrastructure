@@ -8,7 +8,7 @@ import logging
 
 secret_client =  boto3.client("secretsmanager")
 s3_client = boto3.client("s3")
-
+os.environ["BUCKET_NAME"] = "mourne-s3-totes-sys-transform-bucket-3"
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Lambda handler for loading parquet data from S3 to a data warehouse.
 
@@ -51,12 +51,13 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     try:
         db_conn = get_connection()
-        process_fact_tables(fact_tables, s3_client, db_conn)
-        logging.info(f"Datawarehouse update for fact tables complete: {fact_tables}")
         process_dim_tables(dim_tables, s3_client, db_conn)
         logging.info(f"Datawarehouse update for dim tables complete: {dim_tables}")
+        process_fact_tables(fact_tables, s3_client, db_conn)
+        logging.info(f"Datawarehouse update for fact tables complete: {fact_tables}")
         return {"status_code": 200, "body": "Data load completed"}
     except Exception as e:
+        logging.info(f"loading failed: {e}")        
         return {"status_code": 500, "body": f"Error processing data load: {str(e)}"}
     finally:
         if db_conn:
@@ -67,3 +68,17 @@ def get_connection(secret_client = secret_client):
     export_db_creds_to_env(db_creds, ["username","password","port","host"])
     conn = create_connection()
     return conn
+
+
+# lambda_handler({      "fact_tables": {
+#     "fact_sales_order": "2025/03/10/16/44/fact_sales_order.parquet"
+#   },
+#   "dim_tables": {
+#     "dim_date": "2025/03/10/16/44/dim_date.parquet",
+#     "dim_staff": "2025/03/10/16/44/dim_staff.parquet",
+#     "dim_counterparty": "2025/03/10/16/44/dim_counterparty.parquet",
+#     "dim_currency": "2025/03/10/16/44/dim_currency.parquet",
+#     "dim_design": "2025/03/10/16/44/dim_design.parquet",
+#     "dim_location": "2025/03/10/16/44/dim_location.parquet",
+#     "dim_payment_type": "2025/03/10/16/44/dim_payment_type.parquet"
+#   }}, {})
