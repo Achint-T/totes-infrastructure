@@ -32,7 +32,7 @@ def write_dataframe_to_db(
     """
     if not isinstance(dataframe, pd.DataFrame):
         raise TypeError("dataframe must be a Pandas DataFrame")
-    if not isinstance(conn, pg8000.Connection):
+    if not isinstance(conn, pg8000.native.Connection):
         raise TypeError("conn must be a pg8000 Connection")
     if not isinstance(table_name, str):
         raise TypeError("table_name must be a string")
@@ -56,9 +56,10 @@ def write_dataframe_to_db(
 
         if not insert_mode:  # Replace mode when insert_mode is False
             conn.run(f"DELETE FROM {table_name}")
-            dataframe.to_sql(table_name, con = engine, if_exists="append", method= "multi", index= False)
+            
+            dataframe.to_sql(table_name, con = engine, if_exists="append", method= "multi", index= False, chunksize=600)
         else:
-            dataframe[0:700].to_sql(table_name, con = engine, if_exists="append",method="multi", index=False)
+            dataframe.to_sql(table_name, con = engine, if_exists="append",method="multi", index=False, chunksize=500)
         return True
     except Exception as e:
         print("exception")

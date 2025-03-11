@@ -70,15 +70,22 @@ def get_connection(secret_client = secret_client):
     return conn
 
 
-# lambda_handler({      "fact_tables": {
-#     "fact_sales_order": "2025/03/10/16/44/fact_sales_order.parquet"
-#   },
-#   "dim_tables": {
-#     "dim_date": "2025/03/10/16/44/dim_date.parquet",
-#     "dim_staff": "2025/03/10/16/44/dim_staff.parquet",
-#     "dim_counterparty": "2025/03/10/16/44/dim_counterparty.parquet",
-#     "dim_currency": "2025/03/10/16/44/dim_currency.parquet",
-#     "dim_design": "2025/03/10/16/44/dim_design.parquet",
-#     "dim_location": "2025/03/10/16/44/dim_location.parquet",
-#     "dim_payment_type": "2025/03/10/16/44/dim_payment_type.parquet"
-#   }}, {})
+lambda_handler({  "fact_tables": {
+    "fact_sales_order": "2025/03/11/14/58/fact_sales_order.parquet",
+    #"fact_payment": "2025/03/11/14/58/fact_payment.parquet",
+    #"fact_purchase_order": "2025/03/11/14/58/fact_purchase_order.parquet"
+  },
+  "dim_tables": {
+    "dim_date": "2025/03/11/14/58/dim_date.parquet",
+    "dim_staff": "2025/03/11/14/58/dim_staff.parquet",
+    "dim_counterparty": "2025/03/11/14/58/dim_counterparty.parquet",
+    "dim_currency": "2025/03/11/14/58/dim_currency.parquet",
+    "dim_design": "2025/03/11/14/58/dim_design.parquet",
+    "dim_location": "2025/03/11/14/58/dim_location.parquet",
+    "dim_payment_type": "2025/03/11/14/58/dim_payment_type.parquet",
+    "dim_transaction": "2025/03/11/14/58/dim_transaction.parquet"
+  }}, {})
+
+#refactor the utilities
+#refractor tests
+#make sure it works as lambda function
