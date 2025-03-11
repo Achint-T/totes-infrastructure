@@ -35,11 +35,11 @@ def util_fact_purchase_order(df_purchase_order):
 
     df_fact_purchase_order["purchase_order_id"] = df_purchase_order["purchase_order_id"]
 
-    df_fact_purchase_order["created_date"] = pd.to_datetime(df_purchase_order["created_at"], errors='coerce').dt.date
-    df_fact_purchase_order["created_time"] = pd.to_datetime(df_purchase_order["created_at"], errors='coerce').dt.time
+    df_fact_purchase_order["created_date"] = pd.to_datetime(df_purchase_order["created_at"], format='mixed').dt.date
+    df_fact_purchase_order["created_time"] = pd.to_datetime(df_purchase_order["created_at"], format='mixed').dt.time
     
-    df_fact_purchase_order["last_updated_date"] = pd.to_datetime(df_purchase_order["last_updated"], errors='coerce').dt.date
-    df_fact_purchase_order["last_updated_time"] = pd.to_datetime(df_purchase_order["last_updated"], errors='coerce').dt.time
+    df_fact_purchase_order["last_updated_date"] = pd.to_datetime(df_purchase_order["last_updated"], format='mixed').dt.date
+    df_fact_purchase_order["last_updated_time"] = pd.to_datetime(df_purchase_order["last_updated"], format='mixed').dt.time
 
     for column in required_columns[3:7]:
         df_fact_purchase_order[column] = df_purchase_order[column]
