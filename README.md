@@ -20,7 +20,7 @@ This is a final project for a Data Engineering bootcamp, and aims to demonstrate
 
 ### Prerequisites
 
-* Python - [Installation guide](https://www.python.org/downloads/)
+* Python - Please refer to the [installation guide](https://www.python.org/downloads/) for instructions on how to install Python. If you are on MacOS and using homebrew, you can install it using the following command: 
   ```
   brew install python
   ```
