@@ -31,7 +31,6 @@ def util_fact_payment(df_payment):
     if col_missing:
         return f"Error: Missing columns {', '.join(col_missing)}"
     
-    df_fact_payment.index.name = "payment_record_id"
     df_fact_payment["payment_id"] = df_payment["payment_id"]
 
     df_fact_payment["created_date"] = pd.to_datetime(df_payment["created_at"], errors='coerce').dt.date
