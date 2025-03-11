@@ -1,7 +1,7 @@
 import pandas as pd
 import pg8000
 import pg8000.native
-from src.load_utils.read_parquet import read_parquet_from_s3
+from load_utils.read_parquet import read_parquet_from_s3
 from typing import Dict
 import boto3
 from sqlalchemy import create_engine, URL
@@ -139,3 +139,16 @@ def process_dim_tables(dim_tables: Dict[str, str], s3_client: boto3.client, db_c
             write_dataframe_to_db(df, db_conn, table_name, insert_mode=False)
         except Exception as e:
             raise Exception(f"Error processing dimension table '{table_name}': {str(e)}") from e
+
+
+def postgres_upsert(table, conn, keys, data_iter):
+    from sqlalchemy.dialects.postgresql import insert
+
+    data = [dict(zip(keys, row)) for row in data_iter]
+
+    insert_statement = insert(table.table).values(data)
+    upsert_statement = insert_statement.on_conflict_do_update(
+        constraint=f"{table.table.name}_id",
+        set_={c.key: c for c in insert_statement.excluded},
+    )
+    conn.execute(upsert_statement)

@@ -1,14 +1,14 @@
 import boto3
 import os
 from typing import Dict, Any
-from src.helpers import fetch_credentials, export_db_creds_to_env
-from src.load_utils.write_dataframe_to_dw import process_dim_tables, process_fact_tables
-from src.ingestion_utils.database_utils import create_connection
+from helpers import fetch_credentials, export_db_creds_to_env
+from load_utils.write_dataframe_to_dw import process_dim_tables, process_fact_tables
+from load_utils.database_utils import create_connection
 import logging
 
 secret_client =  boto3.client("secretsmanager")
 s3_client = boto3.client("s3")
-os.environ["BUCKET_NAME"] = "mourne-s3-totes-sys-transform-bucket-3"
+#os.environ["BUCKET_NAME"] = "mourne-s3-totes-sys-transform-bucket-3"
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Lambda handler for loading parquet data from S3 to a data warehouse.
 
@@ -70,22 +70,25 @@ def get_connection(secret_client = secret_client):
     return conn
 
 
-lambda_handler({  "fact_tables": {
-    "fact_sales_order": "2025/03/11/14/58/fact_sales_order.parquet",
-    #"fact_payment": "2025/03/11/14/58/fact_payment.parquet",
-    #"fact_purchase_order": "2025/03/11/14/58/fact_purchase_order.parquet"
-  },
-  "dim_tables": {
-    "dim_date": "2025/03/11/14/58/dim_date.parquet",
-    "dim_staff": "2025/03/11/14/58/dim_staff.parquet",
-    "dim_counterparty": "2025/03/11/14/58/dim_counterparty.parquet",
-    "dim_currency": "2025/03/11/14/58/dim_currency.parquet",
-    "dim_design": "2025/03/11/14/58/dim_design.parquet",
-    "dim_location": "2025/03/11/14/58/dim_location.parquet",
-    "dim_payment_type": "2025/03/11/14/58/dim_payment_type.parquet",
-    "dim_transaction": "2025/03/11/14/58/dim_transaction.parquet"
-  }}, {})
+# lambda_handler({  "fact_tables": {
+#     "fact_sales_order": "2025/03/11/14/58/fact_sales_order.parquet",
+#     #"fact_payment": "2025/03/11/14/58/fact_payment.parquet",
+#     #"fact_purchase_order": "2025/03/11/14/58/fact_purchase_order.parquet"
+#   },
+#   "dim_tables": {
+#     "dim_date": "2025/03/11/14/58/dim_date.parquet",
+#     "dim_staff": "2025/03/11/14/58/dim_staff.parquet",
+#     "dim_counterparty": "2025/03/11/14/58/dim_counterparty.parquet",
+#     "dim_currency": "2025/03/11/14/58/dim_currency.parquet",
+#     "dim_design": "2025/03/11/14/58/dim_design.parquet",
+#     "dim_location": "2025/03/11/14/58/dim_location.parquet",
+#     "dim_payment_type": "2025/03/11/14/58/dim_payment_type.parquet",
+#     "dim_transaction": "2025/03/11/14/58/dim_transaction.parquet"
+#   }}, {})
 
 #refactor the utilities
 #refractor tests
 #make sure it works as lambda function
+
+
+#add sqlalchemy to the layer

@@ -193,7 +193,9 @@ resource "null_resource" "prepare_layer_files_load" {
       cp "${path.module}/../src/helpers.py" "$LAYER_PATH/helpers.py"
       cp "${path.module}/../src/load_utils/read_parquet.py" "$LAYER_PATH/load_utils/read_parquet.py"
       cp "${path.module}/../src/load_utils/write_dataframe_to_dw.py" "$LAYER_PATH/load_utils/write_dataframe_to_dw.py"
+      cp "${path.module}/../src/ingestion_utils/database_utils.py" "$LAYER_PATH/load_utils/database_utils.py"
 
+      pip install --no-cache-dir sqlalchemy --target "$LAYER_PATH"
     EOT
   }
 }
@@ -243,6 +245,7 @@ resource "aws_lambda_function" "load_handler" {
   handler          = "lambda_load.lambda_handler"
   runtime          = "python3.12"
   timeout          = 60
+  memory_size =  512
 
   environment {
     variables = {
