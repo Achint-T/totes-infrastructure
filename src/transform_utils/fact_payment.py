@@ -33,10 +33,10 @@ def util_fact_payment(df_payment):
     
     df_fact_payment["payment_id"] = df_payment["payment_id"]
 
-    df_fact_payment["created_date"] = pd.to_datetime(df_payment["created_at"], errors='coerce').dt.date
-    df_fact_payment["created_time"] = pd.to_datetime(df_payment["created_at"], errors='coerce').dt.time
-    df_fact_payment["last_updated_date"] = pd.to_datetime(df_payment["last_updated"], errors='coerce').dt.date
-    df_fact_payment["last_updated_time"] = pd.to_datetime(df_payment["last_updated"], errors='coerce').dt.time
+    df_fact_payment["created_date"] = pd.to_datetime(df_payment["created_at"], format='mixed').dt.date
+    df_fact_payment["created_time"] = pd.to_datetime(df_payment["created_at"], format='mixed').dt.time
+    df_fact_payment["last_updated_date"] = pd.to_datetime(df_payment["last_updated"], format='mixed').dt.date
+    df_fact_payment["last_updated_time"] = pd.to_datetime(df_payment["last_updated"], format='mixed').dt.time
 
     df_fact_payment["transaction_id"] = df_payment["transaction_id"]
     df_fact_payment["counterparty_id"] = df_payment["counterparty_id"]

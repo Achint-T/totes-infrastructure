@@ -35,34 +35,26 @@ def util_fact_sales_order(df_sales_order):
 
     df_fact_sales_order["sales_order_id"] = df_sales_order["sales_order_id"]
 
-    df_fact_sales_order["created_date"] = pd.to_datetime(df_sales_order["created_at"], errors='coerce').dt.date
+    df_fact_sales_order["created_date"] = pd.to_datetime(df_sales_order["created_at"], format='mixed').dt.date
     df_fact_sales_order["created_time"] = pd.to_datetime(
-        df_sales_order["created_at"], errors='coerce'
-    ).dt.time
+        df_sales_order["created_at"], format='mixed').dt.time
     df_fact_sales_order["last_updated_date"] = pd.to_datetime(
-        df_sales_order["last_updated"], errors='coerce'
-    ).dt.date
+        df_sales_order["last_updated"], format='mixed').dt.date
     df_fact_sales_order["last_updated_time"] = pd.to_datetime(
-        df_sales_order["last_updated"], errors='coerce'
-    ).dt.time
+        df_sales_order["last_updated"], format='mixed').dt.time
 
     df_fact_sales_order["sales_staff_id"] = df_sales_order["staff_id"]
     df_fact_sales_order["counterparty_id"] = df_sales_order["counterparty_id"]
     df_fact_sales_order["units_sold"] = df_sales_order["units_sold"]
     df_fact_sales_order["unit_price"] = pd.to_numeric(
-        df_sales_order["unit_price"], errors='coerce'
-    ).round(2)
+        df_sales_order["unit_price"]).round(2)
     df_fact_sales_order["currency_id"] = df_sales_order["currency_id"]
     df_fact_sales_order["design_id"] = df_sales_order["design_id"]
 
     df_fact_sales_order["agreed_payment_date"] = pd.to_datetime(
-        df_sales_order["agreed_payment_date"], errors='coerce'
-    ).dt.date
+        df_sales_order["agreed_payment_date"]).dt.date
     df_fact_sales_order["agreed_delivery_date"] = pd.to_datetime(
-        df_sales_order["agreed_delivery_date"], errors='coerce'
-    ).dt.date
+        df_sales_order["agreed_delivery_date"]).dt.date
     df_fact_sales_order["agreed_delivery_location_id"] = df_sales_order["agreed_delivery_location_id"]
-
-    # df_fact_sales_order.index.name = "sales_record_id"
 
     return df_fact_sales_order

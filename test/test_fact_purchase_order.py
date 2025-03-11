@@ -66,7 +66,6 @@ class TestPurchaseOrder:
             "agreed_payment_date",
             "agreed_delivery_location_id"]
 
-# ADDED TEST TO CHECK THAT COLUMNS HAVE BEEN TRANSFORMED
 
     def test_datetime_price_columns_transformed(valid_df):
         data = [
@@ -96,7 +95,6 @@ class TestPurchaseOrder:
         assert output['last_updated_time'].iloc[0] == pd.to_datetime('2022-11-03 14:20:52.186').time()
         assert output['item_unit_price'].iloc[0] == 3.94
 
-# ADDED ERROR HANDLING TESTS
 
 class TestPurchaseOrderErrorHandling:
 
@@ -145,30 +143,13 @@ class TestPurchaseOrderErrorHandling:
             "agreed_payment_date",
             "agreed_delivery_location_id"])
         
-        output = util_fact_purchase_order(test_df)
-
-        assert output['created_date'].iloc[0] is pd.NaT
+        with pytest.raises(Exception):
+            util_fact_purchase_order(test_df)
 
     def test_invalid_numeric_value(self):
         data = [[1, '2022-11-03 14:20:52.186', '2022-11-03 14:20:52.186', 5, 2, '5', 2317, 'price', 3, '2022-11-07', '2022-11-08', 2]]
         
         test_df = pd.DataFrame(data, columns=['purchase_order_id', 'created_at', 'last_updated', 'staff_id', 'counterparty_id', 'item_code', 'item_quantity', 'item_unit_price', 'currency_id', 'agreed_delivery_date', 'agreed_payment_date', 'agreed_delivery_location_id'])
 
-        output = util_fact_purchase_order(test_df)
-        assert pd.isna(output['item_unit_price'].iloc[0])
-
-
-# Test commented out as datatypes will be converted at load stage 
-
-# def test_column_datatypes():
-#     data = [
-#         [1, '2022-11-03 14:20:52.186', '2022-11-03 14:20:52.186', 5, 2, 4, 2317, 3.94, 3, '2022-11-07', '2022-11-08', 2], 
-#         [2, '2022-11-03 14:20:52.186', '2022-11-03 14:20:52.186', 5, 2, 4, 2317, 3.94, 3, '2022-11-07', '2022-11-08', 2], 
-#         [3, '2022-11-03 14:20:52.186', '2022-11-03 14:20:52.186', 5, 2, 4, 2317, 3.94, 3, '2022-11-07', '2022-11-08', 2]
-#         ]
-    
-#     test_df = pd.DataFrame(data, columns=['sales_order_id', 'created_at', 'last_updated', 'design_id', 'staff_id', 'counterparty_id', 'units_sold', 'unit_price', 'currency_id', 'agreed_delivery_date', 'agreed_payment_date', 'agreed_delivery_location_id'])
-
-#     output = util_fact_sales_order(test_df)
-
-#     assert output.dtypes == test_df.dtypes
+        with pytest.raises(Exception):
+            util_fact_purchase_order(test_df)
