@@ -64,7 +64,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             db_conn.close()
 
 def get_connection(secret_client = secret_client):
-    db_creds = fetch_credentials(secret_client, secret_name="data_warehouse_credentials")
+    db_creds = fetch_credentials(secret_client, secret_name="warehouse_credentials")
     export_db_creds_to_env(db_creds, ["username","password","port","host"])
     conn = create_connection()
     return conn
