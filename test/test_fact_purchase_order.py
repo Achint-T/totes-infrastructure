@@ -143,14 +143,13 @@ class TestPurchaseOrderErrorHandling:
             "agreed_payment_date",
             "agreed_delivery_location_id"])
         
-        output = util_fact_purchase_order(test_df)
-
-        assert output['created_date'].iloc[0] is pd.NaT
+        with pytest.raises(Exception):
+            util_fact_purchase_order(test_df)
 
     def test_invalid_numeric_value(self):
         data = [[1, '2022-11-03 14:20:52.186', '2022-11-03 14:20:52.186', 5, 2, '5', 2317, 'price', 3, '2022-11-07', '2022-11-08', 2]]
         
         test_df = pd.DataFrame(data, columns=['purchase_order_id', 'created_at', 'last_updated', 'staff_id', 'counterparty_id', 'item_code', 'item_quantity', 'item_unit_price', 'currency_id', 'agreed_delivery_date', 'agreed_payment_date', 'agreed_delivery_location_id'])
 
-        output = util_fact_purchase_order(test_df)
-        assert pd.isna(output['item_unit_price'].iloc[0])
+        with pytest.raises(Exception):
+            util_fact_purchase_order(test_df)

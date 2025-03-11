@@ -79,8 +79,8 @@ class TestSalesOrderErrorHandling:
         
         test_df = pd.DataFrame(data, columns=['sales_order_id', 'created_at', 'last_updated', 'design_id', 'staff_id', 'counterparty_id', 'units_sold', 'unit_price', 'currency_id', 'agreed_delivery_date', 'agreed_payment_date', 'agreed_delivery_location_id'])
 
-        output = util_fact_sales_order(test_df)
-        assert output['created_date'].iloc[0] is pd.NaT
+        with pytest.raises(Exception):
+            util_fact_sales_order(test_df)
 
 
     def test_invalid_numeric_value(self):
@@ -90,5 +90,5 @@ class TestSalesOrderErrorHandling:
         
         test_df = pd.DataFrame(data, columns=['sales_order_id', 'created_at', 'last_updated', 'design_id', 'staff_id', 'counterparty_id', 'units_sold', 'unit_price', 'currency_id', 'agreed_delivery_date', 'agreed_payment_date', 'agreed_delivery_location_id'])
 
-        output = util_fact_sales_order(test_df)
-        assert pd.isna(output['unit_price'].iloc[0])
+        with pytest.raises(Exception):
+            util_fact_sales_order(test_df)

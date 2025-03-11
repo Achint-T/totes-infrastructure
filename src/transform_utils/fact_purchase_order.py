@@ -44,7 +44,7 @@ def util_fact_purchase_order(df_purchase_order):
     for column in required_columns[3:7]:
         df_fact_purchase_order[column] = df_purchase_order[column]
 
-    df_fact_purchase_order["item_unit_price"] = pd.to_numeric(df_purchase_order["item_unit_price"], errors='coerce')
+    df_fact_purchase_order["item_unit_price"] = pd.to_numeric(df_purchase_order["item_unit_price"])
 
     for column in required_columns[8:]:
         df_fact_purchase_order[column] = df_purchase_order[column]
