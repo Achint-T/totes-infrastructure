@@ -1,7 +1,7 @@
 import boto3
 from typing import Dict, Any
 from helpers import fetch_credentials, export_db_creds_to_env
-from load_utils.write_dataframe_to_dw import process_dim_tables, process_fact_tables
+from load_utils.write_dataframe_to_dw import process_tables
 from ingestion_utils.database_utils import create_connection
 import logging
 
@@ -50,9 +50,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     try:
         db_conn = get_connection()
-        process_dim_tables(dim_tables, s3_client, db_conn)
+        process_tables(dim_tables, s3_client, db_conn, is_fact=False)
         logging.info(f"Datawarehouse update for dim tables complete: {dim_tables}")
-        process_fact_tables(fact_tables, s3_client, db_conn)
+        process_tables(fact_tables, s3_client, db_conn, is_fact=True)
         logging.info(f"Datawarehouse update for fact tables complete: {fact_tables}")
         return {"status_code": 200, "body": "Data load completed"}
     except Exception as e:
