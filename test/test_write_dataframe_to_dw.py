@@ -1,7 +1,9 @@
 import pytest
 import pandas as pd
 from src.load_utils.write_dataframe_to_dw import construct_sql
-
+import pg8000
+from unittest import mock
+from src.load_utils.write_dataframe_to_dw import write_dataframe_to_db
 class TestConstructSQL:
     @pytest.fixture
     def sample_dataframe(self):
@@ -82,3 +84,78 @@ ON CONFLICT (col1) DO UPDATE SET col2=excluded.col2, col3=excluded.col3;"""
         excepted_sql = "INSERT INTO dim_date (date_id, year, month) VALUES ('2025-1-26', 2025, 1), ('2024-12-26', 2024, 12);"
         actual_sql = construct_sql(dataframe_with_date, table_name, upsert=False)
         assert excepted_sql == actual_sql
+
+
+@pytest.fixture
+def mock_dataframe():
+    return pd.DataFrame({"col1": [1, 2], "col2": ["a", "b"]})
+
+@pytest.fixture
+def mock_empty_dataframe():
+    return pd.DataFrame()
+
+@pytest.fixture
+def mock_conn():
+    with mock.patch("pg8000.native.Connection", autospec=True) as MockConn:
+        conn = MockConn.return_value
+        yield conn
+
+@pytest.fixture
+def mock_construct_sql():
+    with mock.patch("src.load_utils.write_dataframe_to_dw.construct_sql", autospec=True) as mock_sql: # Assuming construct_sql is in the same module
+        yield mock_sql
+
+class TestWriteDataframeToDb:
+    def test_giving_valid_dataframe_and_connection_when_insert_mode_is_true_then_returns_true_and_calls_conn_run(
+        self, mock_dataframe, mock_conn, mock_construct_sql
+    ):
+        mock_construct_sql.return_value = "INSERT SQL QUERY"
+        result = write_dataframe_to_db(mock_dataframe, mock_conn, "test_table")
+        assert result is True
+        mock_conn.run.assert_called_once_with(sql="INSERT SQL QUERY")
+        mock_construct_sql.assert_called_once_with(dataframe=mock_dataframe, table_name="test_table", upsert=False)
+
+    def test_giving_valid_dataframe_and_connection_when_insert_mode_is_false_then_returns_true_and_calls_conn_run_with_replace_sql(
+        self, mock_dataframe, mock_conn, mock_construct_sql
+    ):
+        mock_construct_sql.return_value = "REPLACE SQL QUERY"
+        result = write_dataframe_to_db(mock_dataframe, mock_conn, "test_table", insert_mode=False)
+        assert result is True
+        mock_conn.run.assert_called_once_with(sql="REPLACE SQL QUERY")
+        mock_construct_sql.assert_called_once_with(dataframe=mock_dataframe, table_name="test_table", upsert=True)
+
+    def test_giving_invalid_dataframe_type_then_raises_type_error(self, mock_conn):
+        with pytest.raises(TypeError) as excinfo:
+            write_dataframe_to_db("not_a_dataframe", mock_conn, "test_table")
+        assert str(excinfo.value) == "dataframe must be a Pandas DataFrame"
+
+    def test_giving_invalid_table_name_type_then_raises_type_error(self, mock_dataframe, mock_conn):
+        with pytest.raises(TypeError) as excinfo:
+            write_dataframe_to_db(mock_dataframe, mock_conn, 123)
+        assert str(excinfo.value) == "table_name must be a string"
+
+    def test_giving_empty_dataframe_then_raises_value_error(self, mock_empty_dataframe, mock_conn):
+        with pytest.raises(ValueError) as excinfo:
+            write_dataframe_to_db(mock_empty_dataframe, mock_conn, "test_table")
+        assert str(excinfo.value) == "DataFrame cannot be empty"
+
+    def test_giving_empty_table_name_then_raises_value_error(self, mock_dataframe, mock_conn):
+        with pytest.raises(ValueError) as excinfo:
+            write_dataframe_to_db(mock_dataframe, mock_conn, "")
+        assert str(excinfo.value) == "table_name cannot be empty"
+
+    def test_giving_valid_dataframe_when_write_to_db_is_called_then_input_dataframe_is_not_modified(
+        self, mock_dataframe, mock_conn, mock_construct_sql
+    ):
+        original_dataframe = mock_dataframe.copy()
+        write_dataframe_to_db(mock_dataframe, mock_conn, "test_table")
+        pd.testing.assert_frame_equal(mock_dataframe, original_dataframe)
+
+    def test_giving_db_error_when_conn_run_fails_then_raises_pg8000_error(
+        self, mock_dataframe, mock_conn, mock_construct_sql
+    ):
+        mock_conn.run.side_effect = pg8000.Error("Database connection failed")
+        mock_construct_sql.return_value = "SQL QUERY"
+        with pytest.raises(pg8000.Error) as excinfo:
+            write_dataframe_to_db(mock_dataframe, mock_conn, "test_table")
+        assert str(excinfo.value) == "Database connection failed"

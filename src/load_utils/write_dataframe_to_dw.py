@@ -49,11 +49,10 @@ def write_dataframe_to_db(
         sql = construct_sql(dataframe=dataframe, table_name=table_name, upsert=not insert_mode)
         conn.run(sql=sql)
         return True
-    except Exception as e:
-        print("exception")
-        raise Exception(str(e))
     except pg8000.Error as db_error:
         raise pg8000.Error(str(db_error)) from db_error
+    except Exception as e:
+        raise Exception(str(e))
     
 
 def process_tables(tables: Dict[str, str], s3_client: boto3.client, db_conn: pg8000.native.Connection, is_fact: bool = True) -> None:
