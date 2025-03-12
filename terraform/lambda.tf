@@ -191,7 +191,6 @@ resource "null_resource" "prepare_layer_files_load" {
       mkdir -p "$LAYER_PATH"
       mkdir -p "$LAYER_PATH/load_utils"
       cp "${path.module}/../src/helpers.py" "$LAYER_PATH/helpers.py"
-      cp "${path.module}/../src/load_utils/read_parquet.py" "$LAYER_PATH/load_utils/read_parquet.py"
       cp "${path.module}/../src/load_utils/write_dataframe_to_dw.py" "$LAYER_PATH/load_utils/write_dataframe_to_dw.py"
       cp "${path.module}/../src/ingestion_utils/database_utils.py" "$LAYER_PATH/ingestion_utils/database_utils.py"
 

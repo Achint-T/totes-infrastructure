@@ -2,7 +2,7 @@ import pytest
 import boto3
 import pandas as pd
 from moto import mock_aws
-from src.load_utils.read_parquet import read_parquet_from_s3
+from src.load_utils.write_dataframe_to_dw import read_parquet_from_s3
 from botocore.exceptions import ClientError
 from pandas.errors import ParserError
 from io import BytesIO
