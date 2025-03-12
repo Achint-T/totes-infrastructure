@@ -76,8 +76,8 @@ def process_tables(tables: Dict[str, str], s3_client: boto3.client, db_conn: pg8
     """
     if not isinstance(tables, dict):
         raise TypeError("fact_tables must be a dictionary")
-    if not isinstance(db_conn, pg8000.native.Connection):
-        raise TypeError("db_conn must be a pg8000 Connection")
+    # if not isinstance(db_conn, pg8000.native.Connection):
+    #     raise TypeError("db_conn must be a pg8000 Connection")
 
     if not tables:
         if not is_fact:
