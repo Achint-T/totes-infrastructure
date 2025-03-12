@@ -179,8 +179,7 @@ environment {
 resource "null_resource" "prepare_layer_files_load" {
   triggers = {
     
-    helper_file_hash_1 = filebase64sha256("${path.module}/../src/load_utils/read_parquet.py")
-    helper_file_hash_2 = filebase64sha256("${path.module}/../src/load_utils/write_dataframe_to_dw.py")
+    helper_file_hash_1 = filebase64sha256("${path.module}/../src/load_utils/write_dataframe_to_dw.py")
     helper_file_hash_2 = filebase64sha256("${path.module}/../src/helpers.py")
     
 }
