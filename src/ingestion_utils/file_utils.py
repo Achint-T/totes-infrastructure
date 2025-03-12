@@ -34,6 +34,20 @@ def data_to_csv(data, table_name):
         raise IOError(f"Error writing to CSV file: {e}") from e
     
 def get_current_time(time_object):
+    """Formats the given time object into a timestamp and filepath structure.
+
+    Extracts and formats the date and time components from the given time object, 
+    adjusting the seconds by subtracting one. The function returns a dictionary 
+    containing timestamp and filepath information.
+
+    Args:
+        time_object (time.struct_time or list): A time object (e.g., from `time.gmtime()`) 
+            or a list in the format [year, month, day, hour, minute, second].
+
+    Returns:
+        dict: A dictionary with keys 'secret' (formatted timestamp) and 'filepath' 
+            (formatted date path).
+    """
     timenow = list(time_object[:5]) + [time_object[5]-1]
     date = '-'.join([str(number).rjust(2,'0') for number in timenow[:3]])
     hours = ':'.join([str(number).rjust(2,'0') for number in timenow[3:]])

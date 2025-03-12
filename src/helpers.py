@@ -31,7 +31,6 @@ def fetch_credentials(secrets_client: BaseClient, secret_name: str) -> Dict[str,
     Raises:
         Exception: If fetching from Secrets Manager or JSON parsing fails.
                    Propagates the specific exception encountered. Halts program execution.
-
     """
     try:
         response = secrets_client.get_secret_value(SecretId=secret_name)
