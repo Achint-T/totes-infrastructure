@@ -31,6 +31,14 @@ def create_connection() -> Connection:
         raise Exception(f"Error creating connection: {e}") from e
 
 def close_db_connection(conn):
+    """Closes the given database connection.
+
+    Args:
+        conn (object): Database connection instance to be closed.
+
+    Returns:
+        None
+    """
     conn.close()
 
 def get_recent_additions(conn, tablename: str, updatedate: str, time_now: str) -> dict:
@@ -50,9 +58,6 @@ def get_recent_additions(conn, tablename: str, updatedate: str, time_now: str) -
 
     Raises:
         Exception: If database query or column retrieval fails.
-
-    To-do:
-        SQL injection prevention
     """
     try:
         data = conn.run(f'SELECT * FROM {identifier(tablename)} WHERE last_updated BETWEEN \'{updatedate}\' AND \'{time_now}\';')
@@ -69,7 +74,11 @@ def get_last_upload_date(secretsclient):
         secretsclient: Boto3 client connecting to aws secret manager
 
     Returns:
-        the value of the last upload date in the form of a time stamp 'YYYY-MM-DD 00:00:00' - defaults to the start of 2020 if no value found
+        The value of the last upload date in the form of a time stamp 'YYYY-MM-DD 00:00:00'
+            - defaults to the start of 2020 if no value found.
+    
+    Raises:
+        Exception: If an error occurs while fetching the secret.
     """
     try:
         timestamp = secretsclient.get_secret_value(SecretId = 'lastupload')['SecretString']
@@ -84,13 +93,22 @@ def get_last_upload_date(secretsclient):
         raise Exception(f"Error fetching last upload: {e}")
 
 def put_last_upload_date(time_object, secretclient):
-    '''
+    '''Updates the timestamp of the latest ingestion run.
+
     Takes in the timeobject from time.gmtime() or a list in the form [year,month,day,hour,minute,second] and secret client from boto3.client
         - if the secrets exsists it updates it otherwise creates a new secret called 'lastupload'
-    returns nothing
-    raises an error if it fails to put the secret e.g. invalid client
-    '''
+    
+    Args:
+        time_object (object or list): Time object representing the last 
+            run timestamp.
+        secretclient (object): Client for accessing the secrets manager.
 
+    Returns:
+        None
+
+    Raises:
+        Exception: If an error occurs while attempting update the secret.
+    '''
     date = '-'.join([str(number).rjust(2,'0') for number in time_object[:3]])
     hours = ':'.join([str(number).rjust(2,'0') for number in time_object[3:6]])
     timestamp = f'{date} {hours}'
@@ -104,4 +122,3 @@ def put_last_upload_date(time_object, secretclient):
             raise Exception(f"Error putting last upload: {e}")
     except Exception as e:
         raise Exception(f"Error putting last upload: {e}")
-   
